@@ -31,16 +31,17 @@ class TaskState(object):
         self.e = states[5]
 
     def __str__(self):
-        #state = ["Task State:\n"]
-        #state.append("Number of objects on robot's side: " + str(self.n) + "\n")
-        #state.append("Is the robot transferring? " + str(self.r_t) + "\n")
-        #state.append("Is the human transferring? " + str(self.h_t) + "\n")
-        #state.append("Does the robot have its object? " + str(self.r_o) + "\n")
-        #state.append("Does the robot have the human's object? " + str(self.h_o) + "\n")
-        #state.append("Has the task ended? " + str(self.e) + "\n")
-        #state.append("state = [" + ', '.join(s) + "]")
         state = [str(self.n), str(int(self.r_t)), str(int(self.h_t)), str(int(self.r_o)), str(int(self.h_o)), str(int(self.e))]
         return "state = [" + ', '.join(state) + "]"
+
+class Task(object):
+    """ A class to represent the task itself, which has access
+    the state of the task
+    """
+    current_state = TaskState()
+    current_action = 'T'
+    n_time_steps = 0
+    n_time_seconds = 0.0
 
 if __name__=='__main__':
     state = TaskState()
