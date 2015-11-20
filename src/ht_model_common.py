@@ -47,8 +47,6 @@ def get_states_action(path):
                 state_action[state][action] = state_action[state][action] + 1
             else:
                 state_action[state][action] = 1
-            #print "state = [%d, %d, %d, %d, %d, %d]" % state
-            #print action
         inFile.close()
     return states, state_action
 
@@ -80,5 +78,6 @@ if __name__=='__main__':
         sys.stdout.write("state = [%d, %d, %d, %d, %d, %d]\n" % state)
         sys.stdout.write(print_state(state))
         print colored("My action: %s" % actions[policy[state]], 'green')
-        sys.stdout.write("***********************************\n")
+        sys.stdout.write("**********************************************************\n")
+        sys.stdout.write("**********************************************************\n")
         time.sleep(5)
