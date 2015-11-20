@@ -5,6 +5,7 @@ import glob
 import os
 import random
 import time
+import math
 from termcolor import colored
 from collections import namedtuple
 
@@ -24,15 +25,18 @@ State = namedtuple("State", ['n', 'r_t', 'h_t', 'r_o', 'h_o', 'e'])
 def get_states_action(path):
     state_action = dict()
     states = set()
+    total_steps = 0
+    total_time = 0
     for filename in glob.glob(os.path.join(path, '*.txt')):
         inFile = open(filename, 'r')
         e_name = inFile.readline()
         n_steps = int(inFile.readline())
+        total_steps = total_steps + n_steps
 
         for i in range(n_steps):
             line = inFile.readline()
             fields = line.split()
-            time_step = int(fields[0])
+            total_time = total_time + int(fields[0])
             action = fields[-1]
             state_vector = map(int, fields[1:-1])
             state = State(n = state_vector[0], r_t = state_vector[1], h_t = state_vector[2], r_o = state_vector[3], h_o = state_vector[4], e = state_vector[5])
@@ -77,4 +81,4 @@ if __name__=='__main__':
         sys.stdout.write(print_state(state))
         print colored("My action: %s" % actions[policy[state]], 'green')
         sys.stdout.write("***********************************\n")
-        time.sleep(2)
+        time.sleep(5)
