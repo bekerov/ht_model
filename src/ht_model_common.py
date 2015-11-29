@@ -10,7 +10,8 @@ from termcolor import colored
 from collections import namedtuple
 
 actions = {
-           'W': 'Wait for teammate',
+           'WG': 'Wait for teammate to receive',
+           'WS': 'Wait for state change',
            'T': 'Take object from table',
            'G': 'Give object to teammate',
            'K': 'Keep object on table',
@@ -36,7 +37,7 @@ def get_states_action(path):
         for i in range(n_steps):
             line = inFile.readline()
             fields = line.split()
-            total_time = total_time + int(fields[0])
+            exp_time = int(fields[0])
             action = fields[-1]
             state_vector = map(int, fields[1:-1])
             state = State(n = state_vector[0], r_t = state_vector[1], h_t = state_vector[2], r_o = state_vector[3], h_o = state_vector[4], e = state_vector[5])
@@ -48,7 +49,9 @@ def get_states_action(path):
             else:
                 state_action[state][action] = 1
         inFile.close()
-    return states, state_action
+        total_time = total_time + exp_time/2.0
+    time_per_step = total_time / total_steps
+    return states, state_action, time_per_step
 
 def print_state(state):
     s = ['Explanation:\n']
@@ -71,7 +74,8 @@ if __name__=='__main__':
     if len(sys.argv) != 2:
         print "Usage: " + sys.argv[0] + " path to data files"
         sys.exit()
-    states, state_action = get_states_action(sys.argv[1])
+    states, state_action, time_per_step = get_states_action(sys.argv[1])
+    time_per_step = math.ceil(time_per_step)
     policy = get_common_policy(state_action)
     while True:
         state = random.choice(tuple(states))
@@ -80,4 +84,6 @@ if __name__=='__main__':
         print colored("My action: %s" % actions[policy[state]], 'green')
         sys.stdout.write("**********************************************************\n")
         sys.stdout.write("**********************************************************\n")
-        time.sleep(5)
+        if policy[state] == 'X':
+            break
+        time.sleep(time_per_step)
