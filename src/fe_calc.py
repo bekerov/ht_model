@@ -55,7 +55,7 @@ def get_states_action(path):
         total_time = total_time + exp_time/2.0
         total_phi = [sum(x) for x in zip(total_phi, phi)]
     time_per_step = total_time / total_steps
-    mu_e = [x/float(total_phi[-1]) for x in total_phi]
+    mu_e = [round(x/float(total_phi[-1]), 3) for x in total_phi]
     return states, state_action, time_per_step, mu_e
 
 def print_state(state):
