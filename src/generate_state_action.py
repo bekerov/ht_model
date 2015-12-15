@@ -103,6 +103,9 @@ def generate_state_action(states):
 
     return state_action
 
+def simulate_next_state(state, r_action, h_action):
+    return state
+
 if __name__=='__main__':
     states, start_states = generate_states()
     state_action = generate_state_action(states)
