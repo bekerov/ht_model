@@ -71,11 +71,12 @@ def is_valid_state(state):
     return True
 
 def get_valid_actions(state):
-    actions = list()
+    actions = set()
     if all(v == 0 for v in state):
         # robot is done with its part and can only wait for teammate to change
         # state
-        actions.append('WS')
+        return {'WS'}
+
     return actions
 
 if __name__=='__main__':
