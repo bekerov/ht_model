@@ -8,7 +8,8 @@ from random import choice
 possible_actions = {
         'WG': 'Wait for teammate to receive',
         'WS': 'Wait for state change',
-        'T': 'Take box from table',
+        'TR': 'Take robot\'s box from table',
+        'TH': 'Take teammate\'s box from table',
         'G': 'Give box to teammate',
         'K': 'Keep box on table',
         'R': 'Receive box from teammate',
@@ -77,10 +78,15 @@ def generate_state_action(states):
             # robot is done with its part and can only wait for teammate to change
             # state
             actions.add('WS')
-        if (state.n_r + state.n_h):
-            # if there are any boxes on the robots side, it can take the box
-            actions.add('T')
-        if state.t_r == 1:
+        if state.n_r:
+            # if there are robot's boxes on the robots side, take it
+            actions.add('TR')
+        if state.n_h:
+            # if there are human's boxes on the robots side, take it
+            actions.add('TH')
+        # if (state.n_r + state.n_h):
+            # actions.add('T')
+        if state.b_h == 1 and state.t_r == 1:
             # if the robot is transferring it can wait for the teammate to receive
             actions.add('WG')
         if state.t_h == 1:
@@ -89,7 +95,7 @@ def generate_state_action(states):
         if state.b_r == 1:
             # if the robot is holding its box, it can keep
             actions.add('K')
-        if state.b_h == 1:
+        if state.b_h == 1 and state.t_r == 0:
             # if the robot is holding teammate's box, it can give
             actions.add('G')
         if state.e == 1:
