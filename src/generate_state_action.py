@@ -5,7 +5,7 @@ from pprint import pprint
 from itertools import product
 from random import choice
 
-possible_actions = {
+permitted_actions = {
         'WG': 'Wait for teammate to receive',
         'WS': 'Wait for state change',
         'TR': 'Take robot\'s box from table',
@@ -52,6 +52,17 @@ def generate_states():
 
     return frozenset(states), frozenset(start_states)
 
+def state_exp(state):
+    s = ['State Explanation:\n']
+    s.append('\tNumber of robot\'s boxes: ' + str(state.n_r) + '\n')
+    s.append('\tNumber of teammate\'s boxes: ' + str(state.n_h) + '\n')
+    s.append('\tIs robot transferring? : ' + str(bool(state.t_r)) + '\n')
+    s.append('\tIs teammate transferring? : ' + str(bool(state.t_h)) + '\n')
+    s.append('\tIs robot holding its box? : ' + str(bool(state.b_r)) + '\n')
+    s.append('\tIs robot holding teammate\'s box? : ' + str(bool(state.b_h)) + '\n')
+    s.append('\tHas the task completed? ' + str(bool(state.e)) + '\n')
+    return ''.join(s)
+
 def is_valid_state(state):
     if state.e == 1:
         # task is done, so other elements of the state vector cannot be non-zero
@@ -72,7 +83,7 @@ def is_valid_state(state):
     return True
 
 def generate_state_action(states):
-    def get_possible_actions(state):
+    def get_permitted_actions(state):
         actions = set()
         if all(v == 0 for v in state):
             # robot is done with its part and can only wait for teammate to change
@@ -105,7 +116,7 @@ def generate_state_action(states):
 
     state_action = dict([ (elem, None) for elem in states ])
     for state in state_action:
-        state_action[state] = get_possible_actions(state)
+        state_action[state] = get_permitted_actions(state)
 
     return state_action
 
@@ -117,5 +128,10 @@ if __name__=='__main__':
     state_action = generate_state_action(states)
     state = choice(tuple(states))
     actions = state_action[state]
-    print state, actions
+    print state
+    print state_exp(state)
+    print "***********************************************"
+    print "Allowed Actions:"
+    for i, action in enumerate(actions):
+        print "\t", i+1, permitted_actions[action]
 
