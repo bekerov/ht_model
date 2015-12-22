@@ -9,6 +9,15 @@ import cPickle as pickle
 from taskSetup import *
 
 def read_data(path):
+    """Function to read the data files that contains the trajectories of human-human teaming.
+    Arg:
+        arg1: Path to directory containing the files
+    Returns:
+        set: all states visited
+        dict: dict of dicts mapping states to actions to frequency of that action
+        float: time per time step in seconds
+
+    """
     possible_states, possible_start_states, possible_actions = load_states("states.pickle")
     state_action = dict()
     visited_states = set()
