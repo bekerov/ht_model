@@ -117,7 +117,7 @@ def generate_actions(states):
 
 def load_states(states_file_name):
     if not os.path.isfile(states_file_name):
-        print "Generating states.pickle file"
+        print "Generating %s file" % states_file_name
         write_states(states_file_name)
     with open(states_file_name, "rb") as states_file:
         possible_states = pickle.load(states_file)
