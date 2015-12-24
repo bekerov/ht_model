@@ -14,6 +14,12 @@ import taskSetup as ts
 """
 
 def get_common_policy(state_action):
+    """Function to extract the common policy given the state action mapping from human-human task
+    Arg:
+        dict: dict of dict mapping states to actions which in turn is mapped to its frequency of use
+    Returns:
+        dict: mapping state to the most frequent action of that particular state
+    """
     policy = dict()
     for state, actions in state_action.items():
         policy[state] = max(actions, key=actions.get)
