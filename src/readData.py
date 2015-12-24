@@ -8,7 +8,7 @@ import cPickle as pickle
 
 from taskSetup import *
 
-def read_data(path):
+def read_data(path, states_file_name):
     """Function to read the data files that contains the trajectories of human-human teaming.
     Arg:
         arg1: Path to directory containing the files
@@ -18,13 +18,15 @@ def read_data(path):
         float: time per time step in seconds
 
     """
-    possible_states, possible_start_states, possible_actions = load_states("states.pickle")
+    possible_states, possible_start_states, possible_actions = load_states(states_file_name)
     state_action = dict()
     visited_states = set()
     total_steps = 0 # cumulative number of time steps of all experiments
     total_time = 0 # cumulative time taken in seconds by all experiments
+    n_files = 0
 
     for filename in glob.glob(os.path.join(path, '*.txt')):
+        n_files = n_files + 1
         with open(filename, 'r') as in_file:
             e_name = in_file.readline()[:-1] # experiment name
             n_steps = int(in_file.readline()) # number of time steps of current experiment
@@ -70,4 +72,5 @@ def read_data(path):
         total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
 
     time_per_step = total_time / total_steps
+    print "Total files read: ", n_files
     return visited_states, state_action, time_per_step
