@@ -6,7 +6,7 @@ import time
 from random import choice
 from termcolor import colored
 
-from taskSetup import *
+import taskSetup as ts
 from readData import read_data
 
 """This module creates a common policy for the box color sort task
@@ -21,23 +21,18 @@ def get_common_policy(state_action):
     return policy
 
 if __name__=='__main__':
-    if len(sys.argv) != 2:
-        print "Usage: " + sys.argv[0] + " path to data files"
-        sys.exit()
-    visited_states, taken_actions, time_per_step = read_data(sys.argv[1], "../data/states.pickle")
+    path = sys.argv[1] if len(sys.argv) > 1 else ts.data_files_path
+    visited_states, taken_actions, time_per_step = read_data(path, ts.states_file_path)
     policy = get_common_policy(taken_actions)
     print "Total number of visited states: ", len(visited_states)
     print "Seconds per time step: ", round(time_per_step, 2)
     while True:
         state = choice(tuple(visited_states))
         print state
-        print state_print(state)
-        print colored("Robot\'s action: %s" % permitted_actions[policy[state]], 'green')
+        print ts.state_print(state)
+        print colored("Robot\'s action: %s" % ts.permitted_actions[policy[state]], 'green')
         print "**********************************************************"
         user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
         if user_input.upper() == 'Q':
             break;
         print "**********************************************************"
-        #if policy[state] == 'X':
-            #break
-        #time.sleep(time_per_step)

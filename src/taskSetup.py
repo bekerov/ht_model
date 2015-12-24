@@ -13,6 +13,8 @@ import cPickle as pickle
 
 MAX_BOXES = 8
 MAX_BOXES_ACC = MAX_BOXES/2
+data_files_path = "../data/sample"
+states_file_path = "../data/states.pickle"
 
 permitted_actions = {
         'WG': 'Wait for teammate to receive',

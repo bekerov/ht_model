@@ -5,7 +5,7 @@ import glob
 import os
 import time
 
-from taskSetup import *
+import taskSetup as ts
 
 def read_data(path, states_file_name):
     """Function to read the data files that contains the trajectories of human-human teaming.
@@ -17,7 +17,7 @@ def read_data(path, states_file_name):
         float: time per time step in seconds
 
     """
-    possible_states, possible_start_states, possible_actions = load_states(states_file_name)
+    possible_states, possible_start_states, possible_actions = ts.load_states(states_file_name)
     state_action = dict()
     visited_states = set()
     total_steps = 0 # cumulative number of time steps of all experiments
@@ -37,14 +37,14 @@ def read_data(path, states_file_name):
                 e_time = int(fields[0]) # time taken in seconds by current experiment
                 action = fields[-1]
 
-                if action not in permitted_actions:
+                if action not in ts.permitted_actions:
                     print "Filename: ", e_name
                     print "Line: ", i+3
                     print "Action %s not recognized" % action
                     sys.exit()
 
                 state_vector = map(int, fields[1:-1])
-                state = State(*state_vector)
+                state = ts.State(*state_vector)
 
                 if i == 0:
                     if state not in possible_start_states:
