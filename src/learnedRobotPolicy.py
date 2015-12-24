@@ -6,7 +6,6 @@ import time
 from random import choice
 
 import taskSetup as ts
-from readData import read_data
 
 def simulate_next_state(state, r_action, h_action):
     return state

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import sys
+import glob
+import time
 
 from collections import namedtuple
 from itertools import product
@@ -8,7 +11,7 @@ from itertools import product
 import cPickle as pickle
 
 """This module defines the framework for the box color sort task
-   and misc functions that are used by other modules
+   and misc functions that are unique to the task
 """
 
 MAX_BOXES = 8
@@ -38,7 +41,80 @@ State = namedtuple("State",
             ]
         )
 
+def read_data(path, states_file_name):
+    """Function to read the data files that contains the trajectories of human-human teaming for box color sort task.
+    Arg:
+        arg1: Path to directory containing the files
+    Returns:
+        set: all states visited
+        dict: dict of dicts mapping states to actions to frequency of that action
+        float: time per time step in seconds
+    """
+    possible_states, possible_start_states, possible_actions = load_states(states_file_name)
+    state_action = dict()
+    visited_states = set()
+    total_steps = 0 # cumulative number of time steps of all experiments
+    total_time = 0 # cumulative time taken in seconds by all experiments
+    n_files = 0
+
+    for filename in glob.glob(os.path.join(path, '*.txt')):
+        n_files = n_files + 1
+        with open(filename, 'r') as in_file:
+            e_name = in_file.readline()[:-1] # experiment name
+            n_steps = int(in_file.readline()) # number of time steps of current experiment
+            total_steps = total_steps + n_steps
+
+            for i in range(n_steps):
+                line = in_file.readline()
+                fields = line.split()
+                e_time = int(fields[0]) # time taken in seconds by current experiment
+                action = fields[-1]
+
+                if action not in permitted_actions:
+                    print "Filename: ", e_name
+                    print "Line: ", i+3
+                    print "Action %s not recognized" % action
+                    sys.exit()
+
+                state_vector = map(int, fields[1:-1])
+                state = State(*state_vector)
+
+                if i == 0:
+                    if state not in possible_start_states:
+                        print "Filename: ", e_name
+                        print "Line: ", i+3
+                        print "State: ", state
+                        print "Not valid start state!"
+                        sys.exit()
+                else:
+                    if state not in possible_states:
+                        print "Filename: ", e_name
+                        print "Line: ", i+3
+                        print "State: ", state
+                        print "Not valid state!"
+                        sys.exit()
+
+                visited_states.add(state)
+                if state not in state_action:
+                    state_action[state] = dict()
+                if action in state_action[state]:
+                    state_action[state][action] = state_action[state][action] + 1
+                else:
+                    state_action[state][action] = 1
+        total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
+
+    time_per_step = total_time / total_steps
+    print "Total files read: ", n_files
+    return visited_states, state_action, time_per_step
+
 def generate_states():
+    """Function to generate all valid states for the box color sort task
+    Arg:
+        None
+    Returns:
+        frozenset: all valid states
+        frozenset: all valid start states
+    """
     def is_valid_state(state):
         if state.e == 1:
             # task is done, so other elements of the state vector cannot be non-zero
@@ -80,6 +156,12 @@ def generate_states():
     return frozenset(states), frozenset(start_states)
 
 def generate_actions(states):
+    """Function to generate all valid actions for the given states for the box color sort task
+    Arg:
+        frozenset: set of states for the task
+    Returns:
+        dict: dict mapping each state to possible actions that can be taken in that state
+    """
     def generate_permitted_actions(state):
         actions = set()
         if all(v == 0 for v in state):
@@ -118,6 +200,14 @@ def generate_actions(states):
     return state_action
 
 def load_states(states_file_name):
+    """Function to load the state framework from saved disk file
+    Arg:
+        string: state file name
+    Returns:
+        frozenset: possible states for the task
+        frozenset: possible start states for the task
+        dict: dict of states mapped to actions available in that state
+    """
     if not os.path.isfile(states_file_name):
         print "Generating %s file" % states_file_name
         write_states(states_file_name)
@@ -128,6 +218,12 @@ def load_states(states_file_name):
     return possible_states, possible_start_states, possible_actions
 
 def write_states(states_file_name):
+    """Function to save the state framework to disk as pickle file
+    Arg:
+        string: state file name
+    Returns:
+        None
+    """
     possible_states, possible_start_states = generate_states()
     possible_actions = generate_actions(possible_states)
     with open(states_file_name, "wb") as states_file:
@@ -136,6 +232,12 @@ def write_states(states_file_name):
         pickle.dump(possible_actions, states_file)
 
 def state_print(state):
+    """Function to pretty print the state of the task with elaborate explanations
+    Arg:
+        State: state of the task
+    Returns:
+        string: Complete explanation of the state returned as a string which can be printed
+    """
     s = ['State Explanation:\n']
     s.append('\tNumber of robot\'s boxes: ' + str(state.n_r) + '\n')
     s.append('\tNumber of teammate\'s boxes: ' + str(state.n_h) + '\n')
