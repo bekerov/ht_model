@@ -24,7 +24,7 @@ if __name__=='__main__':
     if len(sys.argv) != 2:
         print "Usage: " + sys.argv[0] + " path to data files"
         sys.exit()
-    visited_states, taken_actions, time_per_step = read_data(sys.argv[1], "states.pickle")
+    visited_states, taken_actions, time_per_step = read_data(sys.argv[1], "../data/states.pickle")
     policy = get_common_policy(taken_actions)
     print "Total number of visited states: ", len(visited_states)
     print "Seconds per time step: ", round(time_per_step, 2)

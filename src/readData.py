@@ -4,7 +4,6 @@ import sys
 import glob
 import os
 import time
-import cPickle as pickle
 
 from taskSetup import *
 

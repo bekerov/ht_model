@@ -8,7 +8,6 @@ from random import choice
 from taskSetup import *
 from readData import read_data
 
-
 def simulate_next_state(state, r_action, h_action):
     return state
 
