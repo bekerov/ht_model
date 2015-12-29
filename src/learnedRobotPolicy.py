@@ -8,6 +8,16 @@ from random import random
 
 import taskSetup as ts
 
+
+def select_action(actions):
+   r = random()
+   upto = 0
+   for action, probs in actions.items():
+      if upto + probs >= r:
+         return action
+      upto += probs
+   assert False, "Shouldn't get here"
+
 def init_random_policy(possible_state_action):
     policy = dict()
 
@@ -20,6 +30,7 @@ def init_random_policy(possible_state_action):
         for possible_action in possible_actions:
             actions[possible_action] = actions[possible_action] / sumation
         policy[possible_state] = actions
+        # print possible_state, policy[possible_state]
     return policy
 
 def simulate_next_state(current_state, r_action, h_action):
@@ -31,6 +42,18 @@ if __name__=='__main__':
     actions = possible_state_actions[state]
     pi_1 = init_random_policy(possible_state_actions)
     pi_2 = init_random_policy(possible_state_actions)
+    counts = dict()
+    for i in range(10000):
+        action = select_action(pi_1[state])
+        if action not in counts:
+            counts[action] = 1
+        else:
+            counts[action] = counts[action] + 1
+    for action in counts:
+        counts[action] = counts[action]/10000.0
+    print pi_1[state]
+    print counts
+
     # print state
     # print ts.state_print(state)
     # print "***********************************************"
