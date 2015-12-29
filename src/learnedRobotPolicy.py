@@ -8,8 +8,7 @@ from random import random
 
 import taskSetup as ts
 
-
-def select_action(actions):
+def softmax_select_action(actions):
    r = random()
    upto = 0
    for action, probs in actions.items():
@@ -18,19 +17,28 @@ def select_action(actions):
       upto += probs
    assert False, "Shouldn't get here"
 
+def verify_action_selection(pi, state):
+    counts = dict()
+    for i in range(10000):
+        action = softmax_select_action(pi[state])
+        if action not in counts:
+            counts[action] = 1
+        else:
+            counts[action] = counts[action] + 1
+    counts = {k: float(v)/total for total in (sum(counts.values()),) for k, v in counts.items()}
+    print pi[state]
+    print counts
+
+
 def init_random_policy(possible_state_action):
     policy = dict()
 
     for possible_state, possible_actions in possible_state_action.items():
         actions = dict()
-        sumation = 0
         for possible_action in possible_actions:
             actions[possible_action] = random()
-            sumation = sumation + actions[possible_action]
-        for possible_action in possible_actions:
-            actions[possible_action] = actions[possible_action] / sumation
+        actions = {k: v / total for total in (sum(actions.values()),) for k, v in actions.items()}
         policy[possible_state] = actions
-        # print possible_state, policy[possible_state]
     return policy
 
 def simulate_next_state(current_state, r_action, h_action):
@@ -42,17 +50,7 @@ if __name__=='__main__':
     actions = possible_state_actions[state]
     pi_1 = init_random_policy(possible_state_actions)
     pi_2 = init_random_policy(possible_state_actions)
-    counts = dict()
-    for i in range(10000):
-        action = select_action(pi_1[state])
-        if action not in counts:
-            counts[action] = 1
-        else:
-            counts[action] = counts[action] + 1
-    for action in counts:
-        counts[action] = counts[action]/10000.0
-    print pi_1[state]
-    print counts
+    verify_action_selection(pi_1, state)
 
     # print state
     # print ts.state_print(state)
@@ -60,4 +58,3 @@ if __name__=='__main__':
     # print "Allowed Actions:"
     # for i, action in enumerate(actions):
         # print "\t", i+1, ts.permitted_actions[action]
-
