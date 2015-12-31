@@ -30,6 +30,7 @@ def verify_action_selection(pi, state):
     print counts
 
 
+
 def init_random_policy(possible_state_action):
     policy = dict()
 
@@ -41,8 +42,8 @@ def init_random_policy(possible_state_action):
         policy[possible_state] = actions
     return policy
 
-def simulate_next_state(current_state, r_action, h_action):
-    return current_state
+def simulate_next_state(action, state_r1, state_r2):
+    print ts.permitted_actions.keys()
 
 if __name__=='__main__':
     possible_states, possible_start_states, possible_state_actions = ts.load_states(ts.states_file_path)
@@ -50,7 +51,11 @@ if __name__=='__main__':
     actions = possible_state_actions[state]
     pi_1 = init_random_policy(possible_state_actions)
     pi_2 = init_random_policy(possible_state_actions)
-    verify_action_selection(pi_1, state)
+    # verify_action_selection(pi_1, state)
+    state_r1 = choice(tuple(possible_start_states))
+    state_r2 = ts.State(ts.MAX_BOXES_ACC-state_r1.n_r, ts.MAX_BOXES_ACC-state_r1.n_h, *state_r1[2:])
+    print "state_r1" , state_r1
+    print "state_r2" , state_r2
 
     # print state
     # print ts.state_print(state)
