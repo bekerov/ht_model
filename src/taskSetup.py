@@ -168,18 +168,16 @@ def generate_actions(states):
             # robot is done with its part and can only wait for teammate to change
             # state
             actions.add('WS')
-        if state.n_r:
+        if state.n_r and state.b_r == 0:
             # if there are robot's boxes on the robots side, take it
             actions.add('TR')
-        if state.n_h:
+        if state.n_h and state.b_h == 0:
             # if there are human's boxes on the robots side, take it
             actions.add('TH')
-        # if (state.n_r + state.n_h):
-            # actions.add('T')
         if state.b_h == 1 and state.t_r == 1:
             # if the robot is transferring it can wait for the teammate to receive
             actions.add('WG')
-        if state.t_h == 1:
+        if state.t_h == 1 and ((state.b_h + state.b_r) < 2):
             # if the teammate is transferring then the robot can receive
             actions.add('R')
         if state.b_r == 1:

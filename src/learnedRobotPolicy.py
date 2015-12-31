@@ -5,6 +5,7 @@ import time
 
 from random import choice
 from random import random
+from termcolor import colored
 
 import taskSetup as ts
 
@@ -43,7 +44,26 @@ def init_random_policy(possible_state_action):
     return policy
 
 def simulate_next_state(action, state_r1, state_r2):
-    print ts.permitted_actions.keys()
+    state_r1_prime = state_r1
+    state_r2_prime = state_r2
+    # if action == 'WG' or action == 'WS':
+    if action == 'TR':
+        state_r1_prime = ts.State(state_r1.n_r-1, state_r1.n_h, state_r1.t_r, state_r1.t_h, 1, state_r1.b_h, state_r1.e)
+    if action == 'TH':
+        state_r1_prime = ts.State(state_r1.n_r, state_r1.n_h-1, state_r1.t_r, state_r1.t_h, state_r1.b_r, 1, state_r1.e)
+    if action == 'K':
+        state_r1_prime = ts.State(state_r1.n_r, state_r1.n_h, state_r1.t_r, state_r1.t_h, 0, state_r1.b_h, state_r1.e)
+    if action == 'G':
+        state_r1_prime = ts.State(state_r1.n_r, state_r1.n_h, 1, state_r1.t_h, state_r1.b_r, state_r1.b_h, state_r1.e)
+        state_r2_prime = ts.State(state_r2.n_r, state_r2.n_h, state_r2.t_r, 1, state_r2.b_r, state_r2.b_h, state_r2.e)
+    if action == 'R':
+        state_r1_prime = ts.State(state_r1.n_r, state_r1.n_h, state_r1.t_r, 0, 1, state_r1.b_h, state_r1.e)
+        state_r2_prime = ts.State(state_r2.n_r, state_r2.n_h, 0, state_r2.t_h, state_r2.b_r, 0, state_r2.e)
+    if (sum(list(state_r1)) + sum(list(state_r2))) == 0:
+        state_r1_prime = ts.State(state_r1.n_r, state_r1.n_h, state_r1.t_r, state_r1.t_h, state_r1.b_r, state_r1.b_h, 1)
+        state_r2_prime = ts.State(state_r2.n_r, state_r2.n_h, state_r2.t_r, state_r2.t_h, state_r2.b_r, state_r2.b_h, 1)
+
+    return state_r1_prime, state_r2_prime
 
 if __name__=='__main__':
     possible_states, possible_start_states, possible_state_actions = ts.load_states(ts.states_file_path)
@@ -53,9 +73,28 @@ if __name__=='__main__':
     pi_2 = init_random_policy(possible_state_actions)
     # verify_action_selection(pi_1, state)
     state_r1 = choice(tuple(possible_start_states))
-    state_r2 = ts.State(ts.MAX_BOXES_ACC-state_r1.n_r, ts.MAX_BOXES_ACC-state_r1.n_h, *state_r1[2:])
-    print "state_r1" , state_r1
-    print "state_r2" , state_r2
+    state_r2 = state_r1
+    # print state
+    while True:
+        action_r1 = softmax_select_action(pi_1[state_r1])
+        action_r2 = softmax_select_action(pi_2[state_r2])
+        print colored("state_r1 before: %s" % str(state_r1), 'red')
+        print colored("action_r1: %s" % ts.permitted_actions[action_r1], 'red')
+        print colored("state_r2 before: %s" % str(state_r2), 'blue')
+        print colored("action_r2: %s" % ts.permitted_actions[action_r2], 'blue')
+        # print "state_r2 before: ", state_r2
+        # print "action_r2", action_r2
+        if action_r1 == 'X' or action_r2 == 'X':
+            break
+        state_r1, state_r2 = simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
+        state_r2, state_r1 = simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
+        print colored("state_r1 after: %s" % str(state_r1), 'red')
+        print colored("state_r2 after: %s" % str(state_r2), 'blue')
+        # print "state_r1 after: ", state_r1
+        # print "state_r2 after: ", state_r2
+        print "******************************************************************************"
+        print "******************************************************************************"
+
 
     # print state
     # print ts.state_print(state)
