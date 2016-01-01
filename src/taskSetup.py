@@ -3,6 +3,7 @@
 import os
 import sys
 import glob
+import logging
 import time
 
 from collections import namedtuple
@@ -13,6 +14,8 @@ import cPickle as pickle
 """This module defines the framework for the box color sort task
    and misc functions that are unique to the task
 """
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
 
 MAX_BOXES = 8
 MAX_BOXES_ACC = MAX_BOXES/2
@@ -142,7 +145,7 @@ def load_states():
         dict: dict of states mapped to actions available in that state
     """
     if not os.path.isfile(states_file_path):
-        print "Generating %s file" % states_file_path
+        logging.info("Generating %s file" % states_file_path)
         write_states()
     with open(states_file_path, "rb") as states_file:
         task_states = pickle.load(states_file)

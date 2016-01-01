@@ -5,6 +5,7 @@ import os
 import glob
 import time
 import random
+import logging
 import cPickle as pickle
 
 from termcolor import colored
@@ -44,9 +45,9 @@ def read_data():
                 action = fields[-1]
 
                 if action not in ts.task_actions:
-                    print "Filename: ", e_name
-                    print "Line: ", i+3
-                    print "Action %s not recognized" % action
+                    logging.error("Filename: %s", e_name)
+                    logging.error("Line: %d", i+3)
+                    logging.error("Action %s not recognized", action)
                     sys.exit()
 
                 task_state_vector = map(int, fields[1:-1])
@@ -54,17 +55,17 @@ def read_data():
 
                 if i == 0:
                     if task_state not in task_start_states:
-                        print "Filename: ", e_name
-                        print "Line: ", i+3
-                        print "State: ", state
-                        print "Not valid start state!"
+                        logging.error("Filename: %s", e_name)
+                        logging.error("Line: %d", i+3)
+                        logging.error("State: %s", str(task_state))
+                        logging.error("Not valid start state!")
                         sys.exit()
                 else:
                     if task_state not in task_states:
-                        print "Filename: ", e_name
-                        print "Line: ", i+3
-                        print "State: ", state
-                        print "Not valid state!"
+                        logging.error("Filename: %s", e_name)
+                        logging.error("Line: %d", i+3)
+                        logging.error("State: %s", str(task_state))
+                        logging.error("Not valid start state!")
                         sys.exit()
 
                 expert_visited_states.add(task_state)
@@ -77,7 +78,7 @@ def read_data():
         total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
 
     time_per_step = total_time / total_steps
-    print "Total files read: ", n_files
+    logging.info("Total files read: %d", n_files)
     return expert_visited_states, expert_state_action_map, time_per_step
 
 def get_common_policy():
@@ -98,15 +99,16 @@ def get_common_policy():
     return policy
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
     expert_visited_states, expert_state_action_map, time_per_step = read_data()
     expert_policy = get_common_policy()
     if not os.path.isfile(ts.policy_file_path):
-        print "Generating %s file" % ts.policy_file_path
+        logging.info("Generating %s file", ts.policy_file_path)
         with open(ts.policy_file_path, "wb") as p_file:
                 pickle.dump(expert_policy, p_file)
-    print "Total number of visited states: ", len(expert_visited_states)
-    print "Seconds per time step: ", round(time_per_step, 2)
+    logging.info("Total number of visited states: %d", len(expert_visited_states))
+    logging.info("Seconds per time step: %f", round(time_per_step, 2))
     state_r1 = random.choice(tuple(task_start_states))
     state_r2 = state_r1
     pi_1 = expert_policy
@@ -116,17 +118,17 @@ if __name__=='__main__':
         nactions = nactions + 1
         action_r1 = sf.softmax_select_action(pi_1[state_r1])
         action_r2 = sf.softmax_select_action(pi_2[state_r2])
-        print colored("state_r1 before: %s" % str(state_r1), 'red')
-        print colored("action_r1: %s" % ts.task_actions[action_r1], 'red')
-        print colored("state_r2 before: %s" % str(state_r2), 'cyan')
-        print colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan')
+        logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
+        logging.debug("%s", colored("action_r1: %s" % ts.task_actions[action_r1], 'red'))
+        logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
+        logging.debug("%s", colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan'))
         if action_r1 == 'X' or action_r2 == 'X':
             break
         state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
         state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
-        print colored("state_r1 after: %s" % str(state_r1), 'red')
-        print colored("state_r2 after: %s" % str(state_r2), 'cyan')
-        print "******************************************************************************"
-        print "******************************************************************************"
+        logging.debug("%s", colored("state_r1 after: %s" % str(state_r1), 'red'))
+        logging.debug("%s", colored("state_r2 after: %s" % str(state_r2), 'cyan'))
+        logging.debug("******************************************************************************")
+        logging.debug("******************************************************************************")
 
     print "Total number of actions by agents using expert policy is %d" % nactions
