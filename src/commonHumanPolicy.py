@@ -101,20 +101,32 @@ if __name__=='__main__':
     task_states, task_start_states, task_state_action_map = ts.load_states()
     expert_visited_states, expert_state_action_map, time_per_step = read_data()
     expert_policy = get_common_policy()
-    #for task_state, expert_action in expert_policy.items():
-        #print task_state, expert_action
+    if not os.path.isfile(ts.policy_file_path):
+        print "Generating %s file" % ts.policy_file_path
+        with open(ts.policy_file_path, "wb") as p_file:
+                pickle.dump(expert_policy, p_file)
+    print "Total number of visited states: ", len(expert_visited_states)
+    print "Seconds per time step: ", round(time_per_step, 2)
+    state_r1 = random.choice(tuple(task_start_states))
+    state_r2 = state_r1
+    pi_1 = expert_policy
+    pi_2 = expert_policy
+    nactions = 0
+    while True:
+        nactions = nactions + 1
+        action_r1 = sf.softmax_select_action(pi_1[state_r1])
+        action_r2 = sf.softmax_select_action(pi_2[state_r2])
+        print colored("state_r1 before: %s" % str(state_r1), 'red')
+        print colored("action_r1: %s" % ts.task_actions[action_r1], 'red')
+        print colored("state_r2 before: %s" % str(state_r2), 'cyan')
+        print colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan')
+        if action_r1 == 'X' or action_r2 == 'X':
+            break
+        state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
+        state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
+        print colored("state_r1 after: %s" % str(state_r1), 'red')
+        print colored("state_r2 after: %s" % str(state_r2), 'cyan')
+        print "******************************************************************************"
+        print "******************************************************************************"
 
-    with open(ts.policy_file_path, "wb") as p_file:
-            pickle.dump(expert_policy, p_file)
-    #print "Total number of visited states: ", len(expert_visited_states)
-    #print "Seconds per time step: ", round(time_per_step, 2)
-    #while True:
-        #state = random.choice(tuple(expert_visited_states))
-        #print state
-        #print ts.state_print(state)
-        #print colored("Robot\'s action: %s" % ts.task_actions[sf.softmax_select_action(expert_policy[state])], 'green')
-        #print "**********************************************************"
-        #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        #if user_input.upper() == 'Q':
-            #break;
-        #print "**********************************************************"
+    print "Total number of actions by agents using expert policy is %d" % nactions
