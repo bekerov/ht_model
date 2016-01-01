@@ -23,6 +23,11 @@ def init_random_policy(task_state_action_map):
     return random_policy
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     task_sates, task_start_states, task_state_action_map = ts.load_states()
-    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+    nactions = 0
+    ntrials = 10000
+    for i in range(ntrials):
+        nactions = nactions + sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+    #print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+    print "Average number of actions per run using random policy = ", float(nactions)/ntrials

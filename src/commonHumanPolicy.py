@@ -90,7 +90,7 @@ def get_common_policy():
         actions = dict()
         for action in state_actions:
             actions[action] = 1.0/len(state_actions)
-        policy[task_state] =actions
+        policy[task_state] = actions
 
     for task_state, expert_actions in expert_state_action_map.items():
         actions = {k: float(v)/total for total in (sum(expert_actions.values()),) for k, v in expert_actions.items()}
@@ -98,9 +98,14 @@ def get_common_policy():
     return policy
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
     expert_visited_states, expert_state_action_map, time_per_step = read_data()
     logging.info("Total number of visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
+    nactions = 0
+    ntrials = 10000
+    for i in range(ntrials):
+        nactions = nactions + sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
+    #print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
+    print "Average number of actions per run using expert policy = ", float(nactions)/ntrials
