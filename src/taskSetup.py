@@ -116,7 +116,8 @@ def generate_actions(states):
             # if the robot is transferring it can wait for the teammate to receive
             actions.add('WG')
         if state.t_h == 1 and ((state.b_h + state.b_r) < 2):
-            # if the teammate is transferring then the robot can receive
+            # if the teammate is transferring then the robot can receive,
+            # provided one of its hands is free
             actions.add('R')
         if state.b_r == 1:
             # if the robot is holding its box, it can keep
