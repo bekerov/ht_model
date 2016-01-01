@@ -20,7 +20,7 @@ data_files_path = "../data/sample"
 states_file_path = "../data/states.pickle"
 policy_file_path = "../data/policy.pickle"
 
-permitted_actions = {
+task_actions = {
         'WG': 'Wait for teammate to receive',
         'WS': 'Wait for state change',
         'TR': 'Take robot\'s box from table',
@@ -97,7 +97,7 @@ def generate_actions(states):
     Returns:
         dict: dict mapping each state to possible actions that can be taken in that state
     """
-    def generate_permitted_actions(state):
+    def generate_task_actions(state):
         actions = set()
         if all(v == 0 for v in state):
             # robot is done with its part and can only wait for teammate to change
@@ -128,7 +128,7 @@ def generate_actions(states):
 
     state_action = dict([ (elem, None) for elem in states ])
     for state in state_action:
-        state_action[state] = generate_permitted_actions(state)
+        state_action[state] = generate_task_actions(state)
 
     return state_action
 
@@ -143,12 +143,12 @@ def load_states():
     """
     if not os.path.isfile(states_file_path):
         print "Generating %s file" % states_file_path
-        write_states(states_file_path)
+        write_states()
     with open(states_file_path, "rb") as states_file:
-        possible_states = pickle.load(states_file)
-        possible_start_states = pickle.load(states_file)
-        possible_actions = pickle.load(states_file)
-    return possible_states, possible_start_states, possible_actions
+        task_states = pickle.load(states_file)
+        task_start_states = pickle.load(states_file)
+        task_state_action_map = pickle.load(states_file)
+    return task_states, task_start_states, task_state_action_map
 
 def write_states():
     """Function to save the state framework to disk as pickle file
@@ -157,12 +157,12 @@ def write_states():
     Returns:
         None
     """
-    possible_states, possible_start_states = generate_states()
-    possible_actions = generate_actions(possible_states)
+    task_states, task_start_states = generate_states()
+    task_state_action_map = generate_actions(task_states)
     with open(states_file_path, "wb") as states_file:
-        pickle.dump(possible_states, states_file)
-        pickle.dump(possible_start_states, states_file)
-        pickle.dump(possible_actions, states_file)
+        pickle.dump(task_states, states_file)
+        pickle.dump(task_start_states, states_file)
+        pickle.dump(task_state_action_map, states_file)
 
 def state_print(state):
     """Function to pretty print the state of the task with elaborate explanations
