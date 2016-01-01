@@ -99,7 +99,7 @@ def get_common_policy():
     return policy
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
     expert_visited_states, expert_state_action_map, time_per_step = read_data()
     expert_policy = get_common_policy()
@@ -109,26 +109,30 @@ if __name__=='__main__':
                 pickle.dump(expert_policy, p_file)
     logging.info("Total number of visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    state_r1 = random.choice(tuple(task_start_states))
-    state_r2 = state_r1
+    start_state = random.choice(tuple(task_start_states))
     pi_1 = expert_policy
     pi_2 = expert_policy
-    nactions = 0
-    while True:
-        nactions = nactions + 1
-        action_r1 = sf.softmax_select_action(pi_1[state_r1])
-        action_r2 = sf.softmax_select_action(pi_2[state_r2])
-        logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
-        logging.debug("%s", colored("action_r1: %s" % ts.task_actions[action_r1], 'red'))
-        logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
-        logging.debug("%s", colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan'))
-        if action_r1 == 'X' or action_r2 == 'X':
-            break
-        state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
-        state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
-        logging.debug("%s", colored("state_r1 after: %s" % str(state_r1), 'red'))
-        logging.debug("%s", colored("state_r2 after: %s" % str(state_r2), 'cyan'))
-        logging.debug("******************************************************************************")
-        logging.debug("******************************************************************************")
+    nactions = sf.run_simulation(pi_1, pi_2, start_state)
+    #state_r1 = random.choice(tuple(task_start_states))
+    #state_r2 = state_r1
+    #pi_1 = expert_policy
+    #pi_2 = expert_policy
+    #nactions = 0
+    #while True:
+        #nactions = nactions + 1
+        #action_r1 = sf.softmax_select_action(pi_1[state_r1])
+        #action_r2 = sf.softmax_select_action(pi_2[state_r2])
+        #logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
+        #logging.debug("%s", colored("action_r1: %s" % ts.task_actions[action_r1], 'red'))
+        #logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
+        #logging.debug("%s", colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan'))
+        #if action_r1 == 'X' or action_r2 == 'X':
+            #break
+        #state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
+        #state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
+        #logging.debug("%s", colored("state_r1 after: %s" % str(state_r1), 'red'))
+        #logging.debug("%s", colored("state_r2 after: %s" % str(state_r2), 'cyan'))
+        #logging.debug("******************************************************************************")
+        #logging.debug("******************************************************************************")
 
     print "Total number of actions by agents using expert policy is %d" % nactions

@@ -2,8 +2,14 @@
 
 import time
 import random
+import logging
+
+from termcolor import colored
 
 import taskSetup as ts
+
+"""This module contains the functions for simulating the box color sort task between two agents
+"""
 
 def verify_action_selection(pi, state):
     counts = dict()
@@ -26,16 +32,6 @@ def softmax_select_action(actions):
       upto += probs
    assert False, "Shouldn't get here"
 
-def init_random_policy(task_state_action_map):
-    random_policy = dict()
-
-    for task_state, state_actions in task_state_action_map.items():
-        actions = dict()
-        for action in state_actions:
-            actions[action] = random.random()
-        actions = {k: float(v)/ total for total in (sum(actions.values()),) for k, v in actions.items()}
-        random_policy[task_state] = actions
-    return random_policy
 
 def simulate_next_state(action, my_state, teammate_state):
     my_next_state = my_state
@@ -72,3 +68,30 @@ def simulate_next_state(action, my_state, teammate_state):
         teammate_next_state = ts.State(teammate_state.n_r, teammate_state.n_h, teammate_state.t_r, teammate_state.t_h, teammate_state.b_r, teammate_state.b_h, 1)
 
     return my_next_state, teammate_next_state
+
+def run_simulation(pi_1, pi_2, start_state):
+    state_r1 = start_state
+    state_r2 = start_state
+    nactions = 0
+    while True:
+        nactions = nactions + 1
+        action_r1 = softmax_select_action(pi_1[state_r1])
+        action_r2 = softmax_select_action(pi_2[state_r2])
+        logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
+        logging.debug("%s", colored("action_r1: %s" % ts.task_actions[action_r1], 'red'))
+        logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
+        logging.debug("%s", colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan'))
+
+        if action_r1 == 'X' or action_r2 == 'X':
+            break
+
+        # states are flipped because from each agent's perspective it is the robot and
+        # the other agent is the human
+        state_r1, state_r2 = simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
+        state_r2, state_r1 = simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
+        logging.debug("%s", colored("state_r1 after: %s" % str(state_r1), 'red'))
+        logging.debug("%s", colored("state_r2 after: %s" % str(state_r2), 'cyan'))
+        logging.debug("******************************************************************************")
+        logging.debug("******************************************************************************")
+
+    return nactions

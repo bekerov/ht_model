@@ -15,7 +15,7 @@ import cPickle as pickle
    and misc functions that are unique to the task
 """
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
 
 MAX_BOXES = 8
 MAX_BOXES_ACC = MAX_BOXES/2
