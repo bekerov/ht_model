@@ -139,7 +139,7 @@ def generate_actions(states):
 def load_states():
     """Function to load the state framework from saved disk file
     Arg:
-        string: state file name
+        None
     Returns:
         frozenset: possible states for the task
         frozenset: possible start states for the task
@@ -156,10 +156,6 @@ def load_states():
 
 def write_states():
     """Function to save the state framework to disk as pickle file
-    Arg:
-        string: state file name
-    Returns:
-        None
     """
     task_states, task_start_states = generate_states()
     task_state_action_map = generate_actions(task_states)

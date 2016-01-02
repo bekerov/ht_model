@@ -5,6 +5,7 @@ import time
 import logging
 import cPickle as pickle
 import random
+import numpy as np
 
 from termcolor import colored
 
@@ -25,9 +26,14 @@ def init_random_policy(task_state_action_map):
 if __name__=='__main__':
     logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     task_sates, task_start_states, task_state_action_map = ts.load_states()
-    nactions = 0
     ntrials = 10000
+    nactions = np.zeros(ntrials)
     for i in range(ntrials):
-        nactions = nactions + sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
-    #print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
-    print "Average number of actions per run using random policy = ", float(nactions)/ntrials
+        nactions[i] = sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+        #nactions = nactions + sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+    print "***********Random Policy***************"
+    print "Number of trials = ", ntrials
+    print "Metric: Number of action per trial"
+    print "Mean = ", np.mean(nactions)
+    print "Var = ", np.var(nactions)
+    print "Standard deviation = ", np.std(nactions)

@@ -6,6 +6,7 @@ import glob
 import time
 import random
 import logging
+import numpy as np
 
 from termcolor import colored
 
@@ -103,9 +104,14 @@ if __name__=='__main__':
     expert_visited_states, expert_state_action_map, time_per_step = read_data()
     logging.info("Total number of visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    nactions = 0
     ntrials = 10000
+    nactions = np.zeros(ntrials)
     for i in range(ntrials):
-        nactions = nactions + sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
+        nactions[i] = sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
     #print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
-    print "Average number of actions per run using expert policy = ", float(nactions)/ntrials
+    print "***********Expert Policy***************"
+    print "Number of trials = ", ntrials
+    print "Metric: Number of action per trial"
+    print "Mean = ", np.mean(nactions)
+    print "Var = ", np.var(nactions)
+    print "Standard deviation = ", np.std(nactions)
