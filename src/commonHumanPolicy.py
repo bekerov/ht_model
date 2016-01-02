@@ -18,7 +18,7 @@ import simulationFunctions as sf
    state
 """
 
-def read_data():
+def read_data(task_states, task_start_states):
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task.
     Returns:
         set: all states visited
@@ -81,7 +81,7 @@ def read_data():
     logging.info("Total files read: %d", n_files)
     return expert_visited_states, expert_state_action_map, time_per_step
 
-def get_common_policy():
+def get_common_policy(task_state_action_map, expert_state_action_map):
     """Function to extract the common policy given the state action mapping from human-human task
     Returns:
         dict: mapping state to the most frequent action of that particular state
@@ -99,19 +99,9 @@ def get_common_policy():
     return policy
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
-    expert_visited_states, expert_state_action_map, time_per_step = read_data()
+    expert_visited_states, expert_state_action_map, time_per_step = read_data(task_states, task_start_states)
     logging.info("Total number of visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    ntrials = 10000
-    nactions = np.zeros(ntrials)
-    for i in range(ntrials):
-        nactions[i] = sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
-    #print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(), get_common_policy(), random.choice(tuple(task_start_states)))
-    print "***********Expert Policy***************"
-    print "Number of trials = ", ntrials
-    print "Metric: Number of action per trial"
-    print "Mean = ", np.mean(nactions)
-    print "Var = ", np.var(nactions)
-    print "Standard deviation = ", np.std(nactions)
+    print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(task_state_action_map, expert_state_action_map), get_common_policy(task_state_action_map, expert_state_action_map), random.choice(tuple(task_start_states)))
