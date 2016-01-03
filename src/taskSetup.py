@@ -4,7 +4,6 @@ import os
 import sys
 import glob
 import logging
-import time
 
 from pprint import pformat
 from collections import namedtuple
