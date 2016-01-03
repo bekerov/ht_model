@@ -19,23 +19,31 @@ if __name__=='__main__':
     nactions_random = np.zeros(ntrials)
     for i in range(ntrials):
         start_state = random.choice(tuple(task_start_states))
-        nactions_random[i] = sf.run_simulation(learnedRobotPolicy.init_random_policy(task_state_action_map), learnedRobotPolicy.init_random_policy(task_state_action_map), start_state)
-        nactions_expert[i] = sf.run_simulation(commonHumanPolicy.get_common_policy(task_state_action_map, expert_state_action_map), commonHumanPolicy.get_common_policy(task_state_action_map, expert_state_action_map), start_state)
+        expert_policy = commonHumanPolicy.get_common_policy(task_state_action_map, expert_state_action_map)
+        random_policy = learnedRobotPolicy.init_random_policy(task_state_action_map)
+        nactions_expert[i] = sf.run_simulation(expert_policy, expert_policy, start_state)
+        nactions_random[i] = sf.run_simulation(random_policy, random_policy, start_state)
     print "Number of trials = ", ntrials
     print "Metric: Number of action per trial"
     print "********************************************************************************"
     print "                Expert Policy               Random Policy"
     print "********************************************************************************"
+    print "Min:\t\t ",format(np.amin(nactions_expert), '.3f'), "\t\t\t", format(np.amin(nactions_random), '.3f')
+    print "Max:\t\t ",format(np.amax(nactions_expert), '.3f'), "\t\t\t", format(np.amax(nactions_random), '.3f')
     print "Mean:\t\t ",format(np.mean(nactions_expert), '.3f'), "\t\t\t", format(np.mean(nactions_random), '.3f')
+    print "Median:\t\t ",format(np.median(nactions_expert), '.3f'), "\t\t\t", format(np.median(nactions_random), '.3f')
     print "Var:\t\t ", format(np.var(nactions_expert), '.3f'), "\t\t\t", format(np.var(nactions_random), '.3f')
     print "Std:\t\t ", format(np.std(nactions_expert), '.3f'), "\t\t\t", format(np.std(nactions_random), '.3f')
 
-#Number of trials =  100000
+#Number of trials =  1000000
 #Metric: Number of action per trial
 #********************************************************************************
                 #Expert Policy               Random Policy
 #********************************************************************************
-#Mean:             16.233                        17.282
-#Var:              19.873                        33.267
-#Std:              4.458                         5.768
+#Min:              10.000                        10.000
+#Max:              36.000                        865966.000
+#Mean:             16.244                        22.021
+#Median:           16.000                        17.000
+#Var:              19.969                        1228522.234
+#Std:              4.469                         1108.387
 
