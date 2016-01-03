@@ -72,9 +72,9 @@ def simulate_next_state(action, my_state, teammate_state):
 def run_simulation(pi_1, pi_2, start_state):
     state_r1 = start_state
     state_r2 = start_state
-    nactions = 0
+    n_actions = 0
     while True:
-        nactions = nactions + 1
+        n_actions = n_actions + 1
         action_r1 = softmax_select_action(pi_1[state_r1])
         action_r2 = softmax_select_action(pi_2[state_r2])
         logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
@@ -82,7 +82,7 @@ def run_simulation(pi_1, pi_2, start_state):
         logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
         logging.debug("%s", colored("action_r2: %s" % ts.task_actions[action_r2], 'cyan'))
 
-        if action_r1 == 'X' or action_r2 == 'X':
+        if action_r1 == 'X' and action_r2 == 'X':
             break
 
         # states are flipped because from each agent's perspective it is the robot and
@@ -94,4 +94,4 @@ def run_simulation(pi_1, pi_2, start_state):
         logging.debug("******************************************************************************")
         logging.debug("******************************************************************************")
 
-    return nactions
+    return n_actions
