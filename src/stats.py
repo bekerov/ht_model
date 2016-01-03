@@ -13,7 +13,7 @@ import simulationFunctions as sf
 if __name__=='__main__':
     logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
-    expert_visited_states, expert_state_action_map, time_per_step = commonHumanPolicy.read_data(task_states, task_start_states)
+    expert_visited_states, expert_state_action_map, time_per_step = ts.read_data(task_states, task_start_states)
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
