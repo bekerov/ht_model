@@ -4,6 +4,8 @@ import os
 import sys
 import glob
 import logging
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
 
 from pprint import pformat
 from collections import namedtuple
@@ -87,7 +89,7 @@ def generate_states():
 
     start_states = set()
     for state in states:
-        if (state.n_r + state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in state[2:]):
+        if state.n_r != MAX_BOXES_ACC and (state.n_r + state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in state[2:]):
             start_states.add(state)
 
     logging.info("Total number states (after pruning) for box color sort task: %d", len(states))

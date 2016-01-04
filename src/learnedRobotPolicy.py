@@ -50,6 +50,9 @@ if __name__=='__main__':
         mu_r2 = [sum(x) for x in zip(mu_r2, ts.get_phi(list(state_r2)))]
     mu_r1_diff = [abs(x - y) for x, y in zip(mu_e, mu_r1)]
     mu_r2_diff = [abs(x - y) for x, y in zip(mu_e, mu_r2)]
+    print "mu_e = ", [round(e, 3) for e in mu_e]
+    print "mu_r1 ", [round(e, 3) for e in mu_r1]
+    print "mu_r2 ", [round(e, 3) for e in mu_r2]
     print "mu_r1_diff = ", [round(e, 3) for e in mu_r1_diff]
     print "mu_r2_diff = ", [round(e, 3) for e in mu_r2_diff]
     i = 1

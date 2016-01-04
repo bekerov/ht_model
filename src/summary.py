@@ -4,6 +4,8 @@ import sys
 import random
 import logging
 import numpy as np
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
 
 import commonHumanPolicy
 import learnedRobotPolicy
@@ -34,6 +36,10 @@ if __name__=='__main__':
     print "Median:\t\t ",format(np.median(n_actions_expert), '.3f'), "\t\t\t", format(np.median(n_actions_random), '.3f')
     print "Var:\t\t ", format(np.var(n_actions_expert), '.3f'), "\t\t\t", format(np.var(n_actions_random), '.3f')
     print "Std:\t\t ", format(np.std(n_actions_expert), '.3f'), "\t\t\t", format(np.std(n_actions_random), '.3f')
+
+# the histogram of the data
+n, bins, patches = plt.hist(n_actions_expert, 100, normed=False, facecolor='green', alpha=0.75)
+plt.show()
 
 #Number of trials =  1000000
 #Metric: Number of action per trial
