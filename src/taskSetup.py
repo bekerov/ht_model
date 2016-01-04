@@ -138,18 +138,30 @@ def generate_actions(states):
     return state_action
 
 def get_phi(task_state_vector):
+    """ Function to return the feature vector given the state vector.
+    Arg:
+        List: state vector
+    Return
+        np_array: phi
+    """
     return np.array([1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:-1])
+
+def generate_phi(task_states):
+    phi = np.empty((0, n_states-1))
+    for task_state in task_states:
+        phi = np.vstack((phi, get_phi(list(task_state))))
+    return phi
 
 def write_task_data():
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
     """
-    task_states, task_start_states, task_state_action_map = load_states()
+    task_states, task_start_states, task_state_action_map, _ = load_state_data()
     expert_state_action_map = dict()
     expert_visited_states = set()
     total_steps = 0 # cumulative number of time steps of all experiments
     total_time = 0 # cumulative time taken in seconds by all experiments
     n_files = 0
-    sum_phi = [0] * (n_states - 1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
+    mu_e = np.zeros(n_states-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
 
     for filename in glob.glob(os.path.join(data_files_path, '*.txt')):
         n_files = n_files + 1
@@ -171,7 +183,7 @@ def write_task_data():
                     sys.exit()
 
                 task_state_vector = map(int, fields[1:-1])
-                sum_phi = [sum(x) for x in zip(sum_phi, get_phi(task_state_vector))]
+                mu_e = mu_e + get_phi(task_state_vector)
                 task_state = State(*task_state_vector)
 
                 if i == 0:
@@ -199,7 +211,7 @@ def write_task_data():
         total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
 
     time_per_step = total_time / total_steps
-    mu_e = [float(x)/n_files for x in sum_phi]
+    mu_e = mu_e/n_files
     logging.info("Generating %s file" % task_data_path)
     with open(task_data_path, "wb") as task_data_file:
         pickle.dump(expert_visited_states, task_data_file)
@@ -230,9 +242,9 @@ def read_task_data():
     logging.info("mu_e = %s", pformat(mu_e))
     logging.info("Total number of expert visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    return expert_visited_states, expert_state_action_map, np.array(mu_e), n_files
+    return expert_visited_states, expert_state_action_map, mu_e, n_files
 
-def load_states():
+def load_state_data():
     """Function to load the state framework from saved disk file
     Arg:
         None
@@ -242,23 +254,26 @@ def load_states():
         dict: dict of states mapped to actions available in that state
     """
     if not os.path.isfile(states_file_path):
-        write_states()
+        write_state_data()
     with open(states_file_path, "rb") as states_file:
         task_states = pickle.load(states_file)
         task_start_states = pickle.load(states_file)
         task_state_action_map = pickle.load(states_file)
-    return task_states, task_start_states, task_state_action_map
+        phi = pickle.load(states_file)
+    return task_states, task_start_states, task_state_action_map, phi
 
-def write_states():
+def write_state_data():
     """Function to save the state framework to disk as pickle file
     """
     task_states, task_start_states = generate_states()
     task_state_action_map = generate_actions(task_states)
+    phi = generate_phi(task_states)
     logging.info("Generating %s file" % states_file_path)
     with open(states_file_path, "wb") as states_file:
         pickle.dump(task_states, states_file)
         pickle.dump(task_start_states, states_file)
         pickle.dump(task_state_action_map, states_file)
+        pickle.dump(phi, states_file)
 
 def state_print(state):
     """Function to pretty print the state of the task with elaborate explanations
