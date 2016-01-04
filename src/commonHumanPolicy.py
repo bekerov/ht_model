@@ -37,5 +37,5 @@ def get_common_policy(task_state_action_map, expert_state_action_map):
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map = ts.load_states()
-    expert_visited_states, expert_state_action_map, mu_e = ts.read_task_data()
+    expert_visited_states, expert_state_action_map, mu_e, _ = ts.read_task_data()
     print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(task_state_action_map, expert_state_action_map), get_common_policy(task_state_action_map, expert_state_action_map), random.choice(tuple(task_start_states)))

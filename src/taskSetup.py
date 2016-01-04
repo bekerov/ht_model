@@ -4,8 +4,7 @@ import os
 import sys
 import glob
 import logging
-import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
+import numpy as np
 
 from pprint import pformat
 from collections import namedtuple
@@ -139,7 +138,7 @@ def generate_actions(states):
     return state_action
 
 def get_phi(task_state_vector):
-    return [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:-1]
+    return np.array([1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:-1])
 
 def write_task_data():
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
@@ -231,7 +230,7 @@ def read_task_data():
     logging.info("mu_e = %s", pformat(mu_e))
     logging.info("Total number of expert visited states: %d", len(expert_visited_states))
     logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    return expert_visited_states, expert_state_action_map, mu_e
+    return expert_visited_states, expert_state_action_map, np.array(mu_e), n_files
 
 def load_states():
     """Function to load the state framework from saved disk file
