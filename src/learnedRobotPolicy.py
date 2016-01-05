@@ -25,8 +25,6 @@ def init_random_policy(task_state_action_map):
 def simulate_random_poliy(task_start_states, task_state_action_map):
     print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
 
-
-
 if __name__=='__main__':
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
     task_states, task_start_states, task_state_action_map, phi = ts.load_state_data()

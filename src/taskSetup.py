@@ -92,7 +92,7 @@ def generate_states():
             start_states.add(state)
 
     logging.info("Total number states (after pruning) for box color sort task: %d", len(states))
-    return states, start_states
+    return frozenset(states), frozenset(start_states)
 
 def generate_actions(states):
     """Function to generate all valid actions for the given states for the box color sort task

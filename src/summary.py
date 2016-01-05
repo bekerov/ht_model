@@ -14,7 +14,7 @@ import simulationFunctions as sf
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
-    task_states, task_start_states, task_state_action_map = ts.load_state_data()
+    task_states, task_start_states, task_state_action_map, _ = ts.load_state_data()
     _, expert_state_action_map, _, _ = ts.read_task_data()
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     n_actions_expert = np.zeros(n_trials)
