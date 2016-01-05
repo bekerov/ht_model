@@ -37,9 +37,27 @@ if __name__=='__main__':
     print "Var:\t\t ", format(np.var(n_actions_expert), '.3f'), "\t\t\t", format(np.var(n_actions_random), '.3f')
     print "Std:\t\t ", format(np.std(n_actions_expert), '.3f'), "\t\t\t", format(np.std(n_actions_random), '.3f')
 
-# the histogram of the data
-n, bins, patches = plt.hist(n_actions_expert, 100, normed=False, facecolor='green', alpha=0.75)
+hist, bin_edges = np.histogram(n_actions_expert, bins = 100)
+plt.figure(1)
+plt.bar(bin_edges[:-1], hist, width = 1)
+plt.xlim(min(bin_edges), max(bin_edges))
+plt.xlabel('Number of Actions')
+plt.ylabel('Frequency of Actiosn')
+plt.title('Histogram of action frequency for agents using expert policy')
+
+hist, bin_edges = np.histogram(n_actions_random, bins = 100)
+plt.figure(2)
+plt.bar(bin_edges[:-1], hist, width = 1)
+plt.xlim(min(bin_edges), max(bin_edges))
+plt.xlabel('Number of Actions')
+plt.ylabel('Frequency of Actiosn')
+plt.title('Histogram of action frequency for agents using random policy')
+
 plt.show()
+
+# the histogram of the data
+#n, bins, patches = plt.hist(n_actions_expert, 100, normed=False, facecolor='green', alpha=0.75)
+#plt.show()
 
 #Number of trials =  1000000
 #Metric: Number of action per trial
