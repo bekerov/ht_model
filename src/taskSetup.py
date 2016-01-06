@@ -150,7 +150,7 @@ def generate_phi(task_states):
     phi = np.empty((0, n_states-1))
     for task_state in task_states:
         phi = np.vstack((phi, get_phi(list(task_state))))
-    return phi
+    return phi.transpose()
 
 def write_task_data():
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
