@@ -24,13 +24,13 @@ task_data_path = "../data/task_data.pickle"
 
 task_actions = {
         'WG': 'Wait for teammate to receive',
-        'WS': 'Wait for state change',
-        'TR': 'Take robot\'s box from table',
-        'TH': 'Take teammate\'s box from table',
-        'G': 'Give box to teammate',
-        'K': 'Keep box on table',
         'R': 'Receive box from teammate',
-        'X': 'Exit task'
+        'WS': 'Wait for state change',
+        'G': 'Give box to teammate',
+        'TH': 'Take teammate\'s box from table',
+        'X': 'Exit task',
+        'K': 'Keep box on table',
+        'TR': 'Take robot\'s box from table'
         }
 
 n_states = 7
@@ -183,7 +183,7 @@ def write_task_data():
                     sys.exit()
 
                 task_state_vector = map(int, fields[1:-1])
-                mu_e = mu_e + get_phi(task_state_vector)
+                #mu_e = mu_e + get_phi(task_state_vector)
                 task_state = State(*task_state_vector)
 
                 if i == 0:
@@ -216,7 +216,7 @@ def write_task_data():
     with open(task_data_path, "wb") as task_data_file:
         pickle.dump(expert_visited_states, task_data_file)
         pickle.dump(expert_state_action_map, task_data_file)
-        pickle.dump(mu_e, task_data_file)
+        #pickle.dump(mu_e, task_data_file)
         pickle.dump(time_per_step, task_data_file)
         pickle.dump(n_files, task_data_file)
 
@@ -235,7 +235,7 @@ def read_task_data():
     with open(task_data_path, "rb") as task_data_file:
         expert_visited_states = pickle.load(task_data_file)
         expert_state_action_map = pickle.load(task_data_file)
-        mu_e = pickle.load(task_data_file)
+        #mu_e = pickle.load(task_data_file)
         time_per_step = pickle.load(task_data_file)
         n_files = pickle.load(task_data_file)
     logging.info("Total files read: %d", n_files)
@@ -259,21 +259,22 @@ def load_state_data():
         task_states = pickle.load(states_file)
         task_start_states = pickle.load(states_file)
         task_state_action_map = pickle.load(states_file)
-        phi = pickle.load(states_file)
-    return task_states, task_start_states, task_state_action_map, phi
+        #phi = pickle.load(states_file)
+    #return task_states, task_start_states, task_state_action_map, phi
+    return task_states, task_start_states, task_state_action_map
 
 def write_state_data():
     """Function to save the state framework to disk as pickle file
     """
     task_states, task_start_states = generate_states()
     task_state_action_map = generate_actions(task_states)
-    phi = generate_phi(task_states)
+    #phi = generate_phi(task_states)
     logging.info("Generating %s file" % states_file_path)
     with open(states_file_path, "wb") as states_file:
         pickle.dump(task_states, states_file)
         pickle.dump(task_start_states, states_file)
         pickle.dump(task_state_action_map, states_file)
-        pickle.dump(phi, states_file)
+        #pickle.dump(phi, states_file)
 
 def state_print(state):
     """Function to pretty print the state of the task with elaborate explanations

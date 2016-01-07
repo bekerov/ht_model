@@ -43,46 +43,72 @@ def get_mu(pi_1, pi_2, n_trials):
             mu = mu + ts.get_phi(list(state_r1))
     return mu/n_trials
 
+def get_phi(task_state_vector, task_action_vector, current_action):
+    """ Function to return the feature vector given the state vector and action.
+    Arg:
+        List: state vector
+    Return
+        np_array: phi
+    """
+    state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
+    action_feature = [1 if action == current_action else 0 for action in task_action_vector]
+    feature_vector = state_feature + action_feature
+    return np.array(feature_vector)
+
 if __name__=='__main__':
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
-    task_states, task_start_states, task_state_action_map, phi_state = ts.load_state_data()
-    _, _, mu_e, n_trials = ts.read_task_data()
+    #task_states, task_start_states, task_state_action_map, phi_state = ts.load_state_data()
+    task_states, task_start_states, task_state_action_map = ts.load_state_data()
+    task_actions = list(ts.task_actions)
+    phi = np.zeros((len(task_states), len(ts.task_actions), ts.n_states+len(task_actions)))
+    t = random.choice(list(task_states))
+    a = random.choice(task_actions)
+    p = get_phi(list(t), task_actions, a)
+    print t
+    print a
+    print task_actions
+    print p[0:7]
+    print p[7:]
+
+    #print phi.shape, phi.size
+
+    #_, _, mu_e, n_trials = ts.read_task_data()
     #simulate_random_poliy(task_start_states, task_state_action_map)
 
     # first iteration
-    pi = init_random_policy(task_state_action_map)
-    agent_policy = init_random_policy(task_state_action_map)
-    mu_curr = get_mu(pi, agent_policy, n_trials)
-    i = 1
-    mu_bar_curr = mu_curr
-    w = mu_e - mu_bar_curr
-    t = np.linalg.norm(w)
-    rewards = np.dot(w, phi_state)
-    ##### Use rewards on mdp to get new policy  ###########
-    pi = init_random_policy(task_state_action_map) # this should come from mdp solution
-    mu_curr = get_mu(pi, agent_policy, n_trials)
-    mu_bar_prev = mu_bar_curr
-    while True:
-        print "Iteration: ", i
-        print "mu_bar_prev = ", mu_bar_prev
-        x = mu_curr - mu_bar_prev
-        y = mu_e - mu_bar_prev
-        mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
-        print "mu_bar_curr = ", mu_bar_curr
-        print "t = ", t
-        w = mu_e - mu_bar_curr
-        t = np.linalg.norm(w)
-        rewards = np.dot(w, phi_state)
-        i = i + 1
-        ##### Use rewards on mdp to get new policy  ###########
-        pi = init_random_policy(task_state_action_map) # this should come from mdp solution
-        mu_curr = get_mu(pi, agent_policy, n_trials)
-        mu_bar_prev = mu_bar_curr
-        print "**********************************************************"
-        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        if user_input.upper() == 'Q':
-            break;
-        print "**********************************************************"
+    #pi = init_random_policy(task_state_action_map)
+    #agent_policy = init_random_policy(task_state_action_map)
+    #mu_curr = get_mu(pi, agent_policy, n_trials)
+    #i = 1
+    #mu_bar_curr = mu_curr
+    #w = mu_e - mu_bar_curr
+    #t = np.linalg.norm(w)
+    #rewards = np.dot(w, phi_state)
+    ###### Use rewards on mdp to get new policy  ###########
+    #pi = init_random_policy(task_state_action_map) # this should come from mdp solution
+    #mu_curr = get_mu(pi, agent_policy, n_trials)
+    #mu_bar_prev = mu_bar_curr
+    #while True:
+        #print "Iteration: ", i
+        #print "mu_bar_prev = ", mu_bar_prev
+        #x = mu_curr - mu_bar_prev
+        #y = mu_e - mu_bar_prev
+        #mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
+        #print "mu_bar_curr = ", mu_bar_curr
+        #print "t = ", t
+        #w = mu_e - mu_bar_curr
+        #t = np.linalg.norm(w)
+        #rewards = np.dot(w, phi_state)
+        #i = i + 1
+        ###### Use rewards on mdp to get new policy  ###########
+        #pi = init_random_policy(task_state_action_map) # this should come from mdp solution
+        #mu_curr = get_mu(pi, agent_policy, n_trials)
+        #mu_bar_prev = mu_bar_curr
+        #print "**********************************************************"
+        #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+        #if user_input.upper() == 'Q':
+            #break;
+        #print "**********************************************************"
 
     #w_1 = np.absolute(mu_e - mu_0)
     #rewards = np.dot(w_1, phi_state)
