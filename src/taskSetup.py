@@ -137,20 +137,26 @@ def generate_actions(states):
 
     return state_action
 
-def get_phi(task_state_vector):
-    """ Function to return the feature vector given the state vector.
+def get_phi(task_state_vector, current_action):
+    """ Function to return the feature vector given the state vector and action.
     Arg:
         List: state vector
+        String: current action
     Return
         np_array: phi
     """
-    return np.array([1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:-1])
+    state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
+    action_feature = [1 if action == current_action else 0 for action in list(task_actions)]
+    feature_vector = state_feature + action_feature
+    return np.array(feature_vector)
 
 def generate_phi(task_states):
-    phi = np.empty((0, n_states-1))
+    phi = np.empty((0, (n_states+len(task_actions))))
     for task_state in task_states:
-        phi = np.vstack((phi, get_phi(list(task_state))))
-    return phi.transpose()
+        for task_action in task_actions:
+            phi = np.vstack((phi, get_phi(list(task_state), task_action)))
+    phi = np.reshape(phi, (len(task_states), len(task_actions), (n_states + len(task_actions))))
+    return phi
 
 def write_task_data():
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
@@ -259,22 +265,21 @@ def load_state_data():
         task_states = pickle.load(states_file)
         task_start_states = pickle.load(states_file)
         task_state_action_map = pickle.load(states_file)
-        #phi = pickle.load(states_file)
-    #return task_states, task_start_states, task_state_action_map, phi
-    return task_states, task_start_states, task_state_action_map
+        phi = pickle.load(states_file)
+    return task_states, task_start_states, task_state_action_map, phi
 
 def write_state_data():
     """Function to save the state framework to disk as pickle file
     """
     task_states, task_start_states = generate_states()
     task_state_action_map = generate_actions(task_states)
-    #phi = generate_phi(task_states)
+    phi = generate_phi(task_states)
     logging.info("Generating %s file" % states_file_path)
     with open(states_file_path, "wb") as states_file:
         pickle.dump(task_states, states_file)
         pickle.dump(task_start_states, states_file)
         pickle.dump(task_state_action_map, states_file)
-        #pickle.dump(phi, states_file)
+        pickle.dump(phi, states_file)
 
 def state_print(state):
     """Function to pretty print the state of the task with elaborate explanations
