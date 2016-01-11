@@ -218,7 +218,7 @@ def write_task_data():
 
     time_per_step = total_time / total_steps
     mu_e = mu_e/n_files
-    mu_e = mu_e/np.linalg.norm(mu_e)
+    #mu_e = mu_e/np.linalg.norm(mu_e)
     logging.info("Generating %s file" % task_data_path)
     with open(task_data_path, "wb") as task_data_file:
         pickle.dump(expert_visited_states, task_data_file)

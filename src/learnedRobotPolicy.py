@@ -12,7 +12,6 @@ import taskSetup as ts
 import simulationFunctions as sf
 
 task_states, task_start_states, task_state_action_map, phi_matrix = ts.load_state_data()
-_, _, mu_e, n_trials = ts.read_task_data()
 
 def init_random_policy(task_state_action_map):
     random_policy = dict()
@@ -43,13 +42,18 @@ def get_mu(pi_1, pi_2, n_trials):
             state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
             mu = mu + ts.get_phi(list(state_r1), action_r1)
     mu = mu/n_trials
+    # normalizing feature expection to bind the first norm of rewards and w within 1
     return mu/np.linalg.norm(mu)
 
 def main():
+    _, _, mu_e, n_trials = ts.read_task_data()
+
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     #simulate_random_poliy(task_start_states, task_state_action_map)
 
+    # normalizing feature expection to bind the first norm of rewards and w within 1
+    mu_e = mu_e/np.linalg.norm(mu_e)
     # first iteration
     pi = init_random_policy(task_state_action_map)
     agent_policy = init_random_policy(task_state_action_map)
@@ -69,12 +73,14 @@ def main():
         x = mu_curr - mu_bar_prev
         y = mu_e - mu_bar_prev
         mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
+        rstate_idx = random.randrange(0, len(task_states))
         print "mu_bar_curr = ", mu_bar_curr
+        print "reward[", rstate_idx, "] = ", reward_table[rstate_idx]
+        print "||w||_1 = ", np.linalg.norm(w, 1)
         print "t = ", t
         w = (mu_e - mu_bar_curr)
         t = np.linalg.norm(w)
         reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
-        print reward_table.shape
         i = i + 1
         ##### Use reward_table on mdp to get new policy  ###########
         pi = init_random_policy(task_state_action_map) # this should come from mdp solution
