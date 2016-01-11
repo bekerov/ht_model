@@ -42,7 +42,8 @@ def get_mu(pi_1, pi_2, n_trials):
             state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
             state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
             mu = mu + ts.get_phi(list(state_r1), action_r1)
-    return mu/n_trials
+    mu = mu/n_trials
+    return mu/np.linalg.norm(mu)
 
 def main():
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
@@ -55,14 +56,14 @@ def main():
     mu_curr = get_mu(pi, agent_policy, n_trials)
     i = 1
     mu_bar_curr = mu_curr
-    w = np.absolute(mu_e - mu_bar_curr)
+    w = (mu_e - mu_bar_curr)
     t = np.linalg.norm(w)
     reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
     ######## Use reward_table on mdp to get new policy  ###########
     pi = init_random_policy(task_state_action_map) # this should come from mdp solution
     mu_curr = get_mu(pi, agent_policy, n_trials)
     mu_bar_prev = mu_bar_curr
-    while True:
+    while t > 0.1:
         print "Iteration: ", i
         print "mu_bar_prev = ", mu_bar_prev
         x = mu_curr - mu_bar_prev
@@ -70,7 +71,7 @@ def main():
         mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
         print "mu_bar_curr = ", mu_bar_curr
         print "t = ", t
-        w = mu_e - mu_bar_curr
+        w = (mu_e - mu_bar_curr)
         t = np.linalg.norm(w)
         reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
         print reward_table.shape
