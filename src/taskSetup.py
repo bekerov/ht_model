@@ -151,11 +151,10 @@ def get_phi(task_state_vector, current_action):
     return np.array(feature_vector)
 
 def generate_phi(task_states):
-    phi = np.empty((0, (n_states+len(task_actions))))
+    phi = np.empty((0, (n_states + len(task_actions))))
     for task_state in task_states:
         for task_action in task_actions:
             phi = np.vstack((phi, get_phi(list(task_state), task_action)))
-    phi = np.reshape(phi, (len(task_states), len(task_actions), (n_states + len(task_actions))))
     return phi
 
 def write_task_data():
@@ -167,7 +166,8 @@ def write_task_data():
     total_steps = 0 # cumulative number of time steps of all experiments
     total_time = 0 # cumulative time taken in seconds by all experiments
     n_files = 0
-    mu_e = np.zeros(n_states-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
+    #mu_e = np.zeros(n_states-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
+    mu_e = np.zeros(n_states + len(task_actions))
 
     for filename in glob.glob(os.path.join(data_files_path, '*.txt')):
         n_files = n_files + 1
@@ -180,16 +180,16 @@ def write_task_data():
                 line = in_file.readline()
                 fields = line.split()
                 e_time = int(fields[0]) # time taken in seconds by current experiment
-                action = fields[-1]
+                current_action = fields[-1]
 
-                if action not in task_actions:
+                if current_action not in task_actions:
                     logging.error("Filename: %s", e_name)
                     logging.error("Line: %d", i+3)
-                    logging.error("Action %s not recognized", action)
+                    logging.error("current_action %s not recognized", current_action)
                     sys.exit()
 
                 task_state_vector = map(int, fields[1:-1])
-                #mu_e = mu_e + get_phi(task_state_vector)
+                mu_e = mu_e + get_phi(task_state_vector, current_action)
                 task_state = State(*task_state_vector)
 
                 if i == 0:
@@ -210,10 +210,10 @@ def write_task_data():
                 expert_visited_states.add(task_state)
                 if task_state not in expert_state_action_map:
                     expert_state_action_map[task_state] = dict()
-                if action in expert_state_action_map[task_state]:
-                    expert_state_action_map[task_state][action] = expert_state_action_map[task_state][action] + 1
+                if current_action in expert_state_action_map[task_state]:
+                    expert_state_action_map[task_state][current_action] = expert_state_action_map[task_state][current_action] + 1
                 else:
-                    expert_state_action_map[task_state][action] = 1
+                    expert_state_action_map[task_state][current_action] = 1
         total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
 
     time_per_step = total_time / total_steps
@@ -222,7 +222,7 @@ def write_task_data():
     with open(task_data_path, "wb") as task_data_file:
         pickle.dump(expert_visited_states, task_data_file)
         pickle.dump(expert_state_action_map, task_data_file)
-        #pickle.dump(mu_e, task_data_file)
+        pickle.dump(mu_e, task_data_file)
         pickle.dump(time_per_step, task_data_file)
         pickle.dump(n_files, task_data_file)
 
@@ -241,7 +241,7 @@ def read_task_data():
     with open(task_data_path, "rb") as task_data_file:
         expert_visited_states = pickle.load(task_data_file)
         expert_state_action_map = pickle.load(task_data_file)
-        #mu_e = pickle.load(task_data_file)
+        mu_e = pickle.load(task_data_file)
         time_per_step = pickle.load(task_data_file)
         n_files = pickle.load(task_data_file)
     logging.info("Total files read: %d", n_files)
