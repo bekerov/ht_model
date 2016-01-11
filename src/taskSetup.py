@@ -33,7 +33,7 @@ task_actions = {
         'TR': 'Take robot\'s box from table'
         }
 
-n_states = 7
+n_state_vars = 7
 State = namedtuple("State",
         [   'n_r', # number of robot's boxes on its side 0..MAX_BOXES_ACC
             'n_h', # number of teammate's boxes on its side 0..MAX_BOXES_ACC
@@ -151,7 +151,7 @@ def get_phi(task_state_vector, current_action):
     return np.array(feature_vector)
 
 def generate_phi(task_states):
-    phi = np.empty((0, (n_states + len(task_actions))))
+    phi = np.empty((0, (n_state_vars + len(task_actions))))
     for task_state in task_states:
         for task_action in task_actions:
             phi = np.vstack((phi, get_phi(list(task_state), task_action)))
@@ -166,8 +166,8 @@ def write_task_data():
     total_steps = 0 # cumulative number of time steps of all experiments
     total_time = 0 # cumulative time taken in seconds by all experiments
     n_files = 0
-    #mu_e = np.zeros(n_states-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
-    mu_e = np.zeros(n_states + len(task_actions))
+    #mu_e = np.zeros(n_state_vars-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
+    mu_e = np.zeros(n_state_vars + len(task_actions))
 
     for filename in glob.glob(os.path.join(data_files_path, '*.txt')):
         n_files = n_files + 1
