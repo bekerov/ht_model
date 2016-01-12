@@ -13,7 +13,7 @@ import simulationFunctions as sf
 
 task_states, task_start_states, task_state_action_map, phi_matrix = ts.load_state_data()
 
-def init_random_policy(task_state_action_map):
+def init_random_policy():
     random_policy = dict()
 
     for task_state, state_actions in task_state_action_map.items():
@@ -24,8 +24,8 @@ def init_random_policy(task_state_action_map):
         random_policy[task_state] = actions
     return random_policy
 
-def simulate_random_poliy(task_start_states, task_state_action_map):
-    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(task_state_action_map), init_random_policy(task_state_action_map), random.choice(tuple(task_start_states)))
+def simulate_random_poliy():
+    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(init_random_policy(), init_random_policy(), random.choice(tuple(task_start_states)))
 
 def get_mu(pi_1, pi_2, n_trials):
     mu = np.zeros(ts.n_state_vars + len(ts.task_actions))
@@ -55,8 +55,8 @@ def main():
     # normalizing feature expection to bind the first norm of rewards and w within 1
     mu_e = mu_e/np.linalg.norm(mu_e)
     # first iteration
-    pi = init_random_policy(task_state_action_map)
-    agent_policy = init_random_policy(task_state_action_map)
+    pi = init_random_policy()
+    agent_policy = init_random_policy()
     mu_curr = get_mu(pi, agent_policy, n_trials)
     i = 1
     mu_bar_curr = mu_curr
@@ -64,7 +64,7 @@ def main():
     t = np.linalg.norm(w)
     reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
     ######## Use reward_table on mdp to get new policy  ###########
-    pi = init_random_policy(task_state_action_map) # this should come from mdp solution
+    pi = init_random_policy() # this should come from mdp solution
     mu_curr = get_mu(pi, agent_policy, n_trials)
     mu_bar_prev = mu_bar_curr
     while t > 0.1:
@@ -83,7 +83,7 @@ def main():
         reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
         i = i + 1
         ##### Use reward_table on mdp to get new policy  ###########
-        pi = init_random_policy(task_state_action_map) # this should come from mdp solution
+        pi = init_random_policy() # this should come from mdp solution
         mu_curr = get_mu(pi, agent_policy, n_trials)
         mu_bar_prev = mu_bar_curr
         print "**********************************************************"
