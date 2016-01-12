@@ -52,21 +52,23 @@ n_action_vars = len(task_actions)
 
 
 def generate_task_state_action_space():
-    """Function to generate all valid states (and possible start states) for the box color sort task
+    """Function to generate all state and action space for the box color sort task
     """
-    def is_valid_state(state):
-        if state.e == 1:
-            # task is done, so other elements of the state vector cannot be non-zero
-            return all(v == 0 for v in state[0:-1])
-        if (state.n_r + state.n_h) > MAX_BOXES_ACC:
+    def is_valid_task_state(task_state):
+        """Function to check if current task is valid, if not it will be pruned
+        """
+        if task_state.e == 1:
+            # task is done, so other elements of the task_state vector cannot be non-zero
+            return all(v == 0 for v in task_state[0:-1])
+        if (task_state.n_r + task_state.n_h) > MAX_BOXES_ACC:
             # total number of boxes on robot's side must be less than or equal to max number of boxes
             # accessable or zero when robot's side is sorted and robot is waiting for teammate
             return False
-        if state.t_r == 1 and state.b_h != 1:
+        if task_state.t_r == 1 and task_state.b_h != 1:
             # if the robot is transferring a box, then it must be holding the
-            # teammate's box for the state to be valid
+            # teammate's box for the task_state to be valid
             return False
-        if (state.n_r + state.n_h) == MAX_BOXES_ACC and state.b_h == 1:
+        if (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and task_state.b_h == 1:
             # if robot has all its accessible boxes then,
             # if the robot gets a box, the box was received from a teammate transfer
             # thus box in hand cannot be teammate's box
@@ -74,6 +76,8 @@ def generate_task_state_action_space():
         return True
 
     def get_valid_actions(task_state):
+        """Function to determine possible actions that can be taken in the given task_state
+        """
         actions = list()
         if all(v == 0 for v in task_state):
             # robot is done with its part and can only wait for teammate to change
@@ -103,6 +107,7 @@ def generate_task_state_action_space():
             actions.append('X')
         return actions
 
+    # list of possible values for each of the state variable
     options = [
             [v for v in range(MAX_BOXES_ACC+1)],
             [v for v in range(MAX_BOXES_ACC+1)],
@@ -113,21 +118,33 @@ def generate_task_state_action_space():
             [0, 1]
             ]
 
+    # generate the task_states and possible_task_states
     task_states = np.empty((0, n_state_vars))
     possible_task_start_states = list()
     for vector in product(*options):
         task_state = State(*vector)
-        if is_valid_state(task_state):
+        if is_valid_task_state(task_state):
+            # only add if task_state is valid
             task_states = np.vstack((task_states, task_state))
-        if task_state.n_r != MAX_BOXES_ACC and (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state[2:]):
-            possible_task_start_states.append(task_state)
 
+            if task_state.n_r != MAX_BOXES_ACC and (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state[2:]):
+                # check if the task_state is a start_state, if it is add it to list
+                possible_task_start_states.append(task_state)
+
+    # generate the task_state_action_map which is a matrix SxA having value one for those action's indices which are
+    # valid for that task_state
     task_state_action_map = np.empty((0, n_action_vars))
     for task_state in task_states:
+        # get the indices of the valid actions for the task_state from task_actions
         actions = [task_actions[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
-        t = np.zeros(n_action_vars)
-        np.put(t, actions, 1)
-        task_state_action_map = np.vstack((task_state_action_map, t))
+
+        # create a row for the current task_state
+        current_task_state_map = np.zeros(n_action_vars)
+        np.put(current_task_state_map, actions, 1)
+
+        # add the row to the matrix
+        task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
+
     logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states))
     logging.info("start states length: %d", len(possible_task_start_states))
     return task_states, possible_task_start_states, task_state_action_map
