@@ -91,8 +91,9 @@ def generate_states():
         if state.n_r != MAX_BOXES_ACC and (state.n_r + state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in state[2:]):
             start_states.add(state)
 
+    states = dict([(i, v) for i, v in enumerate(states)])
     logging.info("Total number states (after pruning) for box color sort task: %d", len(states))
-    return frozenset(states), frozenset(start_states)
+    return states, start_states
 
 def generate_actions(states):
     """Function to generate all valid actions for the given states for the box color sort task
@@ -131,7 +132,7 @@ def generate_actions(states):
             actions.add('X')
         return actions
 
-    state_action = dict([ (elem, None) for elem in states ])
+    state_action = dict([(elem, None) for elem in states])
     for state in state_action:
         state_action[state] = generate_task_actions(state)
 
@@ -161,6 +162,7 @@ def write_task_data():
     """Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
     """
     task_states, task_start_states, task_state_action_map, _ = load_state_data()
+    task_states = set(task_states.values())
     expert_state_action_map = dict()
     expert_visited_states = set()
     total_steps = 0 # cumulative number of time steps of all experiments
@@ -273,8 +275,8 @@ def write_state_data():
     """Function to save the state framework to disk as pickle file
     """
     task_states, task_start_states = generate_states()
-    task_state_action_map = generate_actions(task_states)
-    phi = generate_phi(task_states)
+    task_state_action_map = generate_actions(task_states.values())
+    phi = generate_phi(task_states.values())
     logging.info("Generating %s file" % states_file_path)
     with open(states_file_path, "wb") as states_file:
         pickle.dump(task_states, states_file)
