@@ -13,7 +13,7 @@ import taskSetup as ts
 def verify_action_selection(pi, state):
     counts = dict()
     for i in range(10000):
-        action = softmax_select_action(pi[state])
+        action = random_select_action(pi[state])
         if action not in counts:
             counts[action] = 1
         else:
@@ -22,7 +22,7 @@ def verify_action_selection(pi, state):
     print pi[state]
     print counts
 
-def softmax_select_action(actions):
+def random_select_action(actions):
    r = random.random()
    upto = 0
    for action, probs in actions.items():
@@ -74,8 +74,8 @@ def run_simulation(pi_1, pi_2, start_state):
     n_actions = 0
     while True:
         n_actions = n_actions + 1
-        action_r1 = softmax_select_action(pi_1[state_r1])
-        action_r2 = softmax_select_action(pi_2[state_r2])
+        action_r1 = random_select_action(pi_1[state_r1])
+        action_r2 = random_select_action(pi_2[state_r2])
         logging.debug("%s", colored("state_r1 before: %s" % str(state_r1), 'red'))
         logging.debug("%s", colored("action_r1: %s" % ts.task_actions[action_r1], 'red'))
         logging.debug("%s", colored("state_r2 before: %s" % str(state_r2), 'cyan'))
