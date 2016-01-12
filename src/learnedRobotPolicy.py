@@ -77,7 +77,7 @@ def main():
         print "mu_bar_curr = ", mu_bar_curr
         print "reward[", rstate_idx, "] = ", reward_table[rstate_idx]
         print "||w||_1 = ", np.linalg.norm(w, 1)
-        print "t = ", t
+        print "t = ", np.round(t, 3)
         w = (mu_e - mu_bar_curr)
         t = np.linalg.norm(w)
         reward_table = np.reshape(np.dot(phi_matrix, w), (len(task_states), len(ts.task_actions)))
