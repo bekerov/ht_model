@@ -25,7 +25,6 @@ task_parameters_file = "data/task_parameters.pickle"
 #states_file_path = "../data/states.pickle"
 #task_data_path = "../data/task_data.pickle"
 
-n_state_vars = 7
 State = namedtuple("State",
         [   'n_r', # number of robot's boxes on its side 0..MAX_BOXES_ACC
             'n_h', # number of teammate's boxes on its side 0..MAX_BOXES_ACC
@@ -36,6 +35,7 @@ State = namedtuple("State",
             'e'    # Is the task completed? Y/N
             ]
         )
+n_state_vars = 7
 
 # dictionary which maps action key to a tuple containing an index and explanation for the action
 task_actions = {
@@ -69,12 +69,12 @@ def is_valid_task_state(task_state):
         # if the robot gets a box, the box was received from a teammate transfer
         # thus box in hand cannot be teammate's box
         return False
+
     return True
 
 def generate_task_state_space():
     """Function to generate all valid task states (and possible start task states) for the box color sort task
     """
-
     # list of possible values for each of the state variable
     options = [
             [v for v in range(MAX_BOXES_ACC+1)],
@@ -101,6 +101,7 @@ def generate_task_state_space():
 
     logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states))
     logging.info("Total number of possible start states: %d", len(possible_task_start_states))
+
     return task_states, possible_task_start_states
 
 def get_valid_actions(task_state):
@@ -133,6 +134,7 @@ def get_valid_actions(task_state):
     if task_state.e == 1:
         # if task is done, robot can exit
         actions.append('X')
+
     return actions
 
 def generate_task_state_action_map(task_states):
@@ -143,11 +145,11 @@ def generate_task_state_action_map(task_states):
     task_state_action_map = np.empty((0, n_action_vars))
     for task_state in task_states:
         # get the indices of the valid actions for the task_state from task_actions
-        actions = [task_actions[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
+        action_idx = [task_actions[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
 
         # create a row for the current task_state
         current_task_state_map = np.zeros(n_action_vars)
-        np.put(current_task_state_map, actions, 1)
+        np.put(current_task_state_map, action_idx, 1)
 
         # add the row to the matrix
         task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
@@ -155,14 +157,18 @@ def generate_task_state_action_map(task_states):
     return task_state_action_map
 
 def get_feature_vector(task_state_vector, current_action):
-    """ Function to return the feature vector given the current task state vector and current action.
+    """ Function to compute the feature vector given the current task state vector and current action.
     """
     state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
     action_feature = [1 if action == current_action else 0 for action in task_actions.keys()]
     feature_vector = state_feature + action_feature
+
     return np.array(feature_vector)
 
 def generate_feature_matrix(task_states):
+    """ Function to generate the feature matrix, that includes features matching the state
+        and actions.
+    """
     feature_matrix = np.empty((0, (n_state_vars + n_action_vars)))
     for task_state in task_states:
         for task_action in task_actions:
@@ -192,11 +198,13 @@ def load_task_parameters():
     if not os.path.isfile(task_parameters_file):
         logging.info("Generating task parameters file %s" % task_parameters_file)
         write_task_parameters()
+
     with open(task_parameters_file, "rb") as params_file:
         task_states = pickle.load(params_file)
         possible_task_start_states = pickle.load(params_file)
         task_state_action_map = pickle.load(params_file)
         feature_matrix = pickle.load(params_file)
+
     return task_states, possible_task_start_states, task_state_action_map, feature_matrix
 
 #def write_task_data():
