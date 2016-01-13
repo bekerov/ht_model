@@ -52,15 +52,17 @@ n_action_vars = len(task_actions_dict)
 
 # A class to hold task param indices to index into task params list after reading
 class TaskParams:
-    task_states_narray = 0
+    task_states_set = 0
     task_start_state_set = 1
-    task_state_action_narray = 2
+    task_state_action_dict = 2
     feature_matrix = 3
     expert_visited_states_set = 4
     expert_state_action_dict = 5
     expert_feature_expectation = 6
     n_trials = 7
     time_per_step = 8
+    task_states_narray = 9
+    task_state_action_narray = 10
 
 def is_valid_task_state(task_state_tup):
     """Function to check if current task is valid, if not it will be pruned
@@ -162,7 +164,7 @@ def get_feature_vector(task_state_tup, current_action):
     """ Function to compute the feature vector given the current task state vector and current action.
     """
     task_state_list = list(task_state_tup)
-    state_feature = [1 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
+    state_feature = [3 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
     action_feature = [1 if action == current_action else 0 for action in task_actions_dict.keys()]
     feature_vector = state_feature + action_feature
 
@@ -179,48 +181,6 @@ def generate_feature_matrix(task_states_set):
             feature_matrix = np.vstack((feature_matrix, feature_vector))
 
     return feature_matrix
-
-def write_task_parameters():
-    """Function to generate task parameters (states set, state_action dict, feature matrix), convert non numpy structs to numpy and dump to the task_parameters pickle file
-    """
-    task_states_set, task_start_state_set = generate_task_state_set()
-    task_states_narray = np.empty((0, n_state_vars))
-    for task_state_tup in task_states_set:
-        task_states_narray = np.vstack((task_states_narray, task_state_tup))
-
-    task_state_action_dict = generate_task_state_action_dict(task_states_set)
-    task_state_action_narray = np.empty((0, n_action_vars))
-    for task_state_tup, actions_list in task_state_action_dict.items():
-        # get the indices of the valid actions for the task_state from task_actions_dict
-        action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
-
-        # create a row for the current task_state
-        current_task_state_vector = np.zeros(n_action_vars)
-        np.put(current_task_state_vector, action_idx, 1)
-
-        # add the row to the matrix
-        task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
-
-    feature_matrix = generate_feature_matrix(task_states_set)
-    expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
-
-    task_params = [task_states_narray, task_start_state_set, task_state_action_narray, feature_matrix, expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step]
-
-    with open(task_parameters_file, "wb") as params_file:
-        pickle.dump(task_params, params_file)
-
-def load_task_parameters():
-    """Function to load the task parameters (state, state_action map, feature matrix)
-       from saved disk file
-    """
-    if not os.path.isfile(task_parameters_file):
-        logging.info("Generating task parameters file %s" % task_parameters_file)
-        write_task_parameters()
-
-    with open(task_parameters_file, "rb") as params_file:
-        task_params = pickle.load(params_file)
-
-    return task_params
 
 def load_experiment_data(task_states_set, task_start_state_set):
     """Function to read exert data files (after manual video processed) and extract visited states, taken actions and feature expectation
@@ -276,8 +236,6 @@ def load_experiment_data(task_states_set, task_start_state_set):
                     expert_state_action_dict[task_state_tup][current_action] = expert_state_action_dict[task_state_tup][current_action] + 1
                 else:
                     expert_state_action_dict[task_state_tup][current_action] = 1
-            #print "Experiment Name: ", experiment_name
-            #print "Time steps: ", n_time_steps
         total_time = total_time + experiment_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
 
     time_per_step = total_time / total_time_steps
@@ -291,133 +249,60 @@ def load_experiment_data(task_states_set, task_start_state_set):
 
     return expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step
 
+def numpyfy_task_states_set(task_states_set):
+    """Wrapper function to convert non numpy struct set into numpy narray for computation
+    """
+    task_states_narray = np.empty((0, n_state_vars))
+    for task_state_tup in task_states_set:
+        task_states_narray = np.vstack((task_states_narray, task_state_tup))
 
-#def write_task_data():
-    #"""Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
-    #"""
-    #task_states, task_start_states, task_state_action_map, _ = load_state_data()
-    #task_states = set(task_states.values())
-    #expert_state_action_map = dict()
-    #expert_visited_states = set()
-    #total_steps = 0 # cumulative number of time steps of all experiments
-    #total_time = 0 # cumulative time taken in seconds by all experiments
-    #n_files = 0
-    ##mu_e = np.zeros(n_state_vars-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
-    #mu_e = np.zeros(n_state_vars + len(task_actions_dict))
+    return task_states_narray
 
-    #for expert_file_name in glob.glob(os.path.join(data_files_path, '*.txt')):
-        #n_files = n_files + 1
-        #with open(expert_file_name, 'r') as in_file:
-            #e_name = in_file.readline()[:-1] # experiment name
-            #n_steps = int(in_file.readline()) # number of time steps of current experiment
-            #total_steps = total_steps + n_steps
+def numpyfy_task_state_action_dict(task_state_action_dict):
+    """Wrapper function to convert non numpy struct dict into numpy narray for computation
+    """
+    task_state_action_narray = np.empty((0, n_action_vars))
+    for task_state_tup, actions_list in task_state_action_dict.items():
+        # get the indices of the valid actions for the task_state from task_actions_dict
+        action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
 
-            #for i in range(n_steps):
-                #line = in_file.readline()
-                #fields = line.split()
-                #e_time = int(fields[0]) # time taken in seconds by current experiment
-                #current_action = fields[-1]
+        # create a row for the current task_state
+        current_task_state_vector = np.zeros(n_action_vars)
+        np.put(current_task_state_vector, action_idx, 1)
 
-                #if current_action not in task_actions_dict:
-                    #logging.error("expert_file_name: %s", e_name)
-                    #logging.error("Line: %d", i+3)
-                    #logging.error("current_action %s not recognized", current_action)
-                    #sys.exit()
+        # add the row to the matrix
+        task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
 
-                #task_state_vector = map(int, fields[1:-1])
-                #mu_e = mu_e + get_phi(task_state_vector, current_action)
-                #task_state = State(*task_state_vector)
+    return task_state_action_narray
 
-                #if i == 0:
-                    #if task_state not in task_start_states:
-                        #logging.error("expert_file_name: %s", e_name)
-                        #logging.error("Line: %d", i+3)
-                        #logging.error("State: %s", str(task_state))
-                        #logging.error("Not valid start state!")
-                        #sys.exit()
-                #else:
-                    #if task_state not in task_states:
-                        #logging.error("expert_file_name: %s", e_name)
-                        #logging.error("Line: %d", i+3)
-                        #logging.error("State: %s", str(task_state))
-                        #logging.error("Not valid start state!")
-                        #sys.exit()
+def write_task_parameters():
+    """Function to generate task parameters (states set, state_action dict, feature matrix), convert non numpy structs to numpy and dump to the task_parameters pickle file
+    """
+    task_states_set, task_start_state_set = generate_task_state_set()
+    task_state_action_dict = generate_task_state_action_dict(task_states_set)
+    task_states_narray = numpyfy_task_states_set(task_states_set)
+    task_state_action_narray = numpyfy_task_state_action_dict(task_state_action_dict)
 
-                #expert_visited_states.add(task_state)
-                #if task_state not in expert_state_action_map:
-                    #expert_state_action_map[task_state] = dict()
-                #if current_action in expert_state_action_map[task_state]:
-                    #expert_state_action_map[task_state][current_action] = expert_state_action_map[task_state][current_action] + 1
-                #else:
-                    #expert_state_action_map[task_state][current_action] = 1
-        #total_time = total_time + e_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
+    feature_matrix = generate_feature_matrix(task_states_set)
+    expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
 
-    #time_per_step = total_time / total_steps
-    #mu_e = mu_e/n_files
-    ##mu_e = mu_e/np.linalg.norm(mu_e)
-    #logging.info("Generating %s file" % task_data_path)
-    #with open(task_data_path, "wb") as task_data_file:
-        #pickle.dump(expert_visited_states, task_data_file)
-        #pickle.dump(expert_state_action_map, task_data_file)
-        #pickle.dump(mu_e, task_data_file)
-        #pickle.dump(time_per_step, task_data_file)
-        #pickle.dump(n_files, task_data_file)
+    task_params = [task_states_set, task_start_state_set, task_state_action_dict, feature_matrix, expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step, task_states_narray, task_state_action_narray]
 
-#def read_task_data():
-    #"""Function to read the data files that contains the trajectories of human-human teaming for box color sort task.
-    #Arg:
-        #None
-    #Returns:
-       #set: expert_visited_states
-       #dict: dict of expert visited states mapped to action which is mapped to its frequency
-       #mu_e: feature expection for apprenticeship learning
-       #time_per_step: number of seconds per time step for realistic simulation
-    #"""
-    #if not os.path.isfile(task_data_path):
-        #write_task_data()
-    #with open(task_data_path, "rb") as task_data_file:
-        #expert_visited_states = pickle.load(task_data_file)
-        #expert_state_action_map = pickle.load(task_data_file)
-        #mu_e = pickle.load(task_data_file)
-        #time_per_step = pickle.load(task_data_file)
-        #n_files = pickle.load(task_data_file)
-    #logging.info("Total files read: %d", n_files)
-    #logging.info("mu_e = %s", pformat(mu_e))
-    #logging.info("Total number of expert visited states: %d", len(expert_visited_states))
-    #logging.info("Seconds per time step: %f", round(time_per_step, 2))
-    #return expert_visited_states, expert_state_action_map, mu_e, n_files
+    with open(task_parameters_file, "wb") as params_file:
+        pickle.dump(task_params, params_file)
 
-#def load_state_data():
-    #"""Function to load the state framework from saved disk file
-    #Arg:
-        #None
-    #Returns:
-        #frozenset: possible states for the task
-        #frozenset: possible start states for the task
-        #dict: dict of states mapped to actions available in that state
-    #"""
-    #if not os.path.isfile(states_file_path):
-        #write_state_data()
-    #with open(states_file_path, "rb") as states_file:
-        #task_states = pickle.load(states_file)
-        #task_start_states = pickle.load(states_file)
-        #task_state_action_map = pickle.load(states_file)
-        #phi = pickle.load(states_file)
-    #return task_states, task_start_states, task_state_action_map, phi
+def load_task_parameters():
+    """Function to load the task parameters (state, state_action map, feature matrix)
+       from saved disk file
+    """
+    if not os.path.isfile(task_parameters_file):
+        logging.info("Generating task parameters file %s" % task_parameters_file)
+        write_task_parameters()
 
-#def write_state_data():
-    #"""Function to save the state framework to disk as pickle file
-    #"""
-    #task_states, task_start_states = generate_states()
-    #task_state_action_map = generate_actions(task_states.values())
-    #phi = generate_phi(task_states.values())
-    #logging.info("Generating %s file" % states_file_path)
-    #with open(states_file_path, "wb") as states_file:
-        #pickle.dump(task_states, states_file)
-        #pickle.dump(task_start_states, states_file)
-        #pickle.dump(task_state_action_map, states_file)
-        #pickle.dump(phi, states_file)
+    with open(task_parameters_file, "rb") as params_file:
+        task_params = pickle.load(params_file)
 
+    return task_params
 
 def task_state_print(task_state):
     """Function to pretty print the task_state of the task with elaborate explanations
