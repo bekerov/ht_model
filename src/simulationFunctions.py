@@ -24,12 +24,12 @@ def verify_action_selection(pi, state):
     print pi[state]
     print counts
 
-def select_random_action(action_distribution):
+def select_random_action(state_action_distribution_dict):
    """Function to randomly select action given a probability distribution relative to the probability of the action being taken
    """
    r = random.random()
    upto = 0
-   for action, probs in action_distribution.items():
+   for action, probs in state_action_distribution_dict.items():
       if upto + probs >= r:
          return action
       upto += probs
@@ -72,28 +72,28 @@ def simulate_next_state(current_action, my_current_state, teammate_current_state
 
     return my_next_state, teammate_next_state
 
-def run_simulation(agent1_action_distribution, agent2_action_distribution, start_state):
-    agent1_state_tup = start_state
-    agent2_state_tup = start_state
+def run_simulation(r1_state_action_distribution_dict, r2_state_action_distribution_dict, start_state):
+    r1_state_tup = start_state
+    r2_state_tup = start_state
     n_actions = 0
     while True:
         n_actions = n_actions + 1
-        agent1_action = select_random_action(agent1_action_distribution[agent1_state_tup])
-        agent2_action = select_random_action(agent2_action_distribution[agent2_state_tup])
-        logging.debug("%s", colored("Agent 1 state before action: %s" % str(agent1_state_tup), 'red'))
-        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_dict[agent1_action][1], 'red'))
-        logging.debug("%s", colored("Agent 2 state before action: %s" % str(agent2_state_tup), 'cyan'))
-        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_dict[agent2_action][1], 'cyan'))
+        r1_action = select_random_action(r1_state_action_distribution_dict[r1_state_tup])
+        r2_action = select_random_action(r2_state_action_distribution_dict[r2_state_tup])
+        logging.debug("%s", colored("Agent 1 state before action: %s" % str(r1_state_tup), 'red'))
+        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_dict[r1_action][1], 'red'))
+        logging.debug("%s", colored("Agent 2 state before action: %s" % str(r2_state_tup), 'cyan'))
+        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_dict[r2_action][1], 'cyan'))
 
-        if agent1_action == 'X' and agent2_action == 'X':
+        if r1_action == 'X' and r2_action == 'X':
             break
 
         # states are flipped because from each agent's perspective it is the robot and
         # the other agent is the human
-        agent1_state_tup, agent2_state_tup = simulate_next_state(agent1_action, agent1_state_tup, agent2_state_tup) # first agent acting
-        agent2_state_tup, agent1_state_tup = simulate_next_state(agent2_action, agent2_state_tup, agent1_state_tup) # second agent acting
-        logging.debug("%s", colored("Agent 1 state after action: %s" % str(agent1_state_tup), 'red'))
-        logging.debug("%s", colored("Agent 2 state after action: %s" % str(agent2_state_tup), 'cyan'))
+        r1_state_tup, r2_state_tup = simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+        r2_state_tup, r1_state_tup = simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
+        logging.debug("%s", colored("Agent 1 state after action: %s" % str(r1_state_tup), 'red'))
+        logging.debug("%s", colored("Agent 2 state after action: %s" % str(r2_state_tup), 'cyan'))
         logging.debug("******************************************************************************")
         logging.debug("******************************************************************************")
 

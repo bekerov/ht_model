@@ -23,10 +23,10 @@ if __name__=='__main__':
     n_actions_random = np.zeros(n_trials)
     for i in range(n_trials):
         start_state = random.choice(tuple(task_start_state_set))
-        expert_action_distribution = expertActionDistribution.compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
-        random_action_distribution = alActionDistribution.compute_random_action_distribution(task_state_action_dict)
-        n_actions_expert[i] = sf.run_simulation(expert_action_distribution, expert_action_distribution, start_state)
-        n_actions_random[i] = sf.run_simulation(random_action_distribution, random_action_distribution, start_state)
+        expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict(task_state_action_dict, expert_state_action_dict)
+        random_state_action_distribution_dict = alActionDistribution.compute_random_state_action_distribution_dict(task_state_action_dict)
+        n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
+        n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
     print "Number of trials = ", n_trials
     print "Metric: Number of action per trial"
     print "********************************************************************************"
