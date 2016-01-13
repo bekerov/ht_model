@@ -50,6 +50,13 @@ task_actions = {
         }
 n_action_vars = len(task_actions)
 
+# A class to hold task param indices to index into task params list after reading
+class TaskParams:
+    task_states = 0
+    possible_task_start_states = 1
+    task_state_action_map = 2
+    feature_matrix = 3
+
 def is_valid_task_state(task_state):
     """Function to check if current task is valid, if not it will be pruned
     """
@@ -205,7 +212,33 @@ def load_task_parameters():
         task_state_action_map = pickle.load(params_file)
         feature_matrix = pickle.load(params_file)
 
-    return task_states, possible_task_start_states, task_state_action_map, feature_matrix
+    task_params = [task_states, possible_task_start_states, task_state_action_map, feature_matrix]
+    return task_params
+
+def load_experiment_data():
+    task_params = load_task_parameters()
+    task_states = task_params[TaskParams.task_states]
+    possible_task_start_states = task_params[TaskParams.possible_task_start_states]
+    task_state_action_map = task_params[TaskParams.task_state_action_map]
+    expert_visited_states = set()
+    expert_state_action_map = dict()
+    total_time_steps = 0 # cumulative number of time steps of all experiments
+    total_time = 0 # cumulative time taken in seconds by all experiments
+    n_files_read = 0
+    expert_feature_expectation = np.zeros(n_state_vars + n_action_vars)
+
+    for filename in glob.glob(os.path.join(expert_data_files_dir, '*.txt')):
+        n_files_read = n_files_read + 1
+        with open(filename, 'r') as expert_file:
+            experiment_name = expert_file.readline()[:-1]
+            n_time_steps = int(expert_file.readline()) # number of time steps of current experiment
+            total_time_steps = total_time_steps + n_time_steps
+            print "Filename: ", experiment_name
+            print "Time steps: ", n_time_steps
+
+    print "Number of files read: ", n_files_read
+    print "Total number of time steps: ", total_time_steps
+
 
 #def write_task_data():
     #"""Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
