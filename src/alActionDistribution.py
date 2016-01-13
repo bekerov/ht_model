@@ -7,22 +7,9 @@ import numpy as np
 import taskSetup as ts
 import simulationFunctions as sf
 
-
-def simulate_random_action_distribution():
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
-    task_params = ts.load_task_parameters()
-    task_states_set = task_params[ts.TaskParams.task_states_set]
-    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
-    task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
-    feature_matrix = task_params[ts.TaskParams.feature_matrix]
-    expert_feature_expectation = task_params[ts.TaskParams.expert_feature_expectation]
-    n_trials = task_params[ts.TaskParams.n_trials]
-
-    action_distribution_agent1 = compute_random_action_distribution(task_state_action_dict)
-    action_distribution_agent2 = compute_random_action_distribution(task_state_action_dict)
-    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(action_distribution_agent1, action_distribution_agent2, random.choice(tuple(task_start_state_set)))
-
 def compute_random_action_distribution(task_state_action_dict):
+    """Function to compute a random distribution for actions for each task state
+    """
     random_action_distribution = dict()
     for task_state_tup, actions_dict in task_state_action_dict.items():
         random_actions = dict()
@@ -33,8 +20,64 @@ def compute_random_action_distribution(task_state_action_dict):
 
     return random_action_distribution
 
+def simulate_random_action_distribution():
+    """Function to simulate a random action distribution for both the agents
+    """
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+    task_states_set = task_params[ts.TaskParams.task_states_set]
+    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
+    task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
+
+    agent1_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    agent2_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(agent1_action_distribution, agent2_action_distribution, random.choice(tuple(task_start_state_set)))
+
+def compute_normalized_feature_expectation(task_start_state_set, agent1_action_distribution, agent2_action_distribution, n_trials):
+    """Function to compute the feature expectation of the agents by running the simulation for n_trials. The feature expectations are normalized to bind them within 1
+    """
+    agent1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+    agent2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+
+    for trial in range(n_trials):
+        start_state = random.choice(tuple(task_start_state_set))
+        agent1_state_tup = start_state
+        agent2_state_tup = start_state
+        while True:
+            agent1_action = sf.select_random_action(agent1_action_distribution[agent1_state_tup])
+            agent2_action = sf.select_random_action(agent2_action_distribution[agent2_state_tup])
+
+            if agent1_action == 'X' and agent2_action == 'X':
+                break
+
+            agent1_state_tup, agent2_state_tup = sf.simulate_next_state(agent1_action, agent1_state_tup, agent2_state_tup) # first agent acting
+            agent2_state_tup, agent1_state_tup = sf.simulate_next_state(agent2_action, agent2_state_tup, agent1_state_tup) # second agent acting
+
+            # compute feature expectations of the agents
+            agent1_feature_expectation = agent1_feature_expectation + ts.get_feature_vector(agent1_state_tup, agent1_action)
+            agent2_feature_expectation = agent2_feature_expectation + ts.get_feature_vector(agent2_state_tup, agent2_action)
+
+    agent1_feature_expectation = agent1_feature_expectation/n_trials
+    agent2_feature_expectation = agent2_feature_expectation/n_trials
+
+    # normalizing feature expection to bind the first norm of rewards and w within 1
+    return agent1_feature_expectation/np.linalg.norm(agent1_feature_expectation), agent2_feature_expectation/np.linalg.norm(agent2_feature_expectation)
+
 def main():
-    pass
+    logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
+    task_params = ts.load_task_parameters()
+    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
+    task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
+    feature_matrix = task_params[ts.TaskParams.feature_matrix]
+    expert_feature_expectation = task_params[ts.TaskParams.expert_feature_expectation]
+    task_states_narray = task_params[ts.TaskParams.task_states_narray]
+    task_state_action_narray = task_params[ts.TaskParams.task_state_action_narray]
+    n_trials = task_params[ts.TaskParams.n_trials]
+
+    mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation)
+    agent1_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    agent2_action_distribution = compute_random_action_distribution(task_state_action_dict)
+
+    mu_agent1_normalized, mu_agent2_normalized = compute_normalized_feature_expectation(task_start_state_set, agent1_action_distribution, agent2_action_distribution, n_trials)
     #_, _, mu_e, n_trials = ts.read_task_data()
     #logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
     #np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
@@ -104,27 +147,6 @@ def main():
             # break;
         # print "**********************************************************"
 
-#def get_mu(pi_1, pi_2, n_trials):
-    #mu_r1 = np.zeros(ts.n_state_vars + len(ts.task_actions))
-    #mu_r2 = np.zeros(ts.n_state_vars + len(ts.task_actions))
-    #for i in range(n_trials):
-        #start_state = random.choice(tuple(task_start_states))
-        #state_r1 = start_state
-        #state_r2 = start_state
-        #while True:
-            #action_r1 = sf.random_select_action(pi_1[state_r1])
-            #action_r2 = sf.random_select_action(pi_2[state_r2])
-            #if action_r1 == 'X' and action_r2 == 'X':
-                #break
-            #state_r1, state_r2 = sf.simulate_next_state(action_r1, state_r1, state_r2) # first agent acting
-            #state_r2, state_r1 = sf.simulate_next_state(action_r2, state_r2, state_r1) # second agent acting
-            #mu_r1 = mu_r1 + ts.get_phi(list(state_r1), action_r1)
-            #mu_r2 = mu_r2 + ts.get_phi(list(state_r2), action_r2)
-    #mu_r1 = mu_r1/n_trials
-    #mu_r2 = mu_r2/n_trials
-    ## normalizing feature expection to bind the first norm of rewards and w within 1
-    #return mu_r1/np.linalg.norm(mu_r1), mu_r2/np.linalg.norm(mu_r2)
-
 #def q_learning(pi_r1, reward_r1, pi_r2, reward_r2):
     #q_r1 = init_random_policy(False)
     #q_r2 = init_random_policy(False)
@@ -156,5 +178,5 @@ def main():
     ##print pprint.pprint(q_r2)
 
 if __name__=='__main__':
-    simulate_random_action_distribution()
+    main()
 

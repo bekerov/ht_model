@@ -72,28 +72,28 @@ def simulate_next_state(current_action, my_current_state, teammate_current_state
 
     return my_next_state, teammate_next_state
 
-def run_simulation(action_distribution_agent1, action_distribution_agent2, start_state):
-    state_agent1 = start_state
-    state_agent2 = start_state
+def run_simulation(agent1_action_distribution, agent2_action_distribution, start_state):
+    agent1_state_tup = start_state
+    agent2_state_tup = start_state
     n_actions = 0
     while True:
         n_actions = n_actions + 1
-        action_agent1 = select_random_action(action_distribution_agent1[state_agent1])
-        action_agent2 = select_random_action(action_distribution_agent2[state_agent2])
-        logging.debug("%s", colored("Agent 1 state before action: %s" % str(state_agent1), 'red'))
-        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_dict[action_agent1][1], 'red'))
-        logging.debug("%s", colored("Agent 2 state before action: %s" % str(state_agent2), 'cyan'))
-        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_dict[action_agent2][1], 'cyan'))
+        agent1_action = select_random_action(agent1_action_distribution[agent1_state_tup])
+        agent2_action = select_random_action(agent2_action_distribution[agent2_state_tup])
+        logging.debug("%s", colored("Agent 1 state before action: %s" % str(agent1_state_tup), 'red'))
+        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_dict[agent1_action][1], 'red'))
+        logging.debug("%s", colored("Agent 2 state before action: %s" % str(agent2_state_tup), 'cyan'))
+        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_dict[agent2_action][1], 'cyan'))
 
-        if action_agent1 == 'X' and action_agent2 == 'X':
+        if agent1_action == 'X' and agent2_action == 'X':
             break
 
         # states are flipped because from each agent's perspective it is the robot and
         # the other agent is the human
-        state_agent1, state_agent2 = simulate_next_state(action_agent1, state_agent1, state_agent2) # first agent acting
-        state_agent2, state_agent1 = simulate_next_state(action_agent2, state_agent2, state_agent1) # second agent acting
-        logging.debug("%s", colored("Agent 1 state after action: %s" % str(state_agent1), 'red'))
-        logging.debug("%s", colored("Agent 2 state after action: %s" % str(state_agent2), 'cyan'))
+        agent1_state_tup, agent2_state_tup = simulate_next_state(agent1_action, agent1_state_tup, agent2_state_tup) # first agent acting
+        agent2_state_tup, agent1_state_tup = simulate_next_state(agent2_action, agent2_state_tup, agent1_state_tup) # second agent acting
+        logging.debug("%s", colored("Agent 1 state after action: %s" % str(agent1_state_tup), 'red'))
+        logging.debug("%s", colored("Agent 2 state after action: %s" % str(agent2_state_tup), 'cyan'))
         logging.debug("******************************************************************************")
         logging.debug("******************************************************************************")
 
