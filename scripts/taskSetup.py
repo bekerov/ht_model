@@ -262,7 +262,7 @@ def numpyfy_task_state_action_dict(task_state_action_dict):
     """Wrapper function to convert non numpy struct dict into numpy narray for computation
     """
     task_state_action_narray = np.empty((0, n_action_vars))
-    for task_state_tup, actions_list in task_state_action_dict.items():
+    for task_state_tup, _ in task_state_action_dict.items():
         # get the indices of the valid actions for the task_state from task_actions_dict
         action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
 
