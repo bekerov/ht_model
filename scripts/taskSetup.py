@@ -94,14 +94,12 @@ def generate_task_state_set():
             ]
 
     # generate the task_states and possible_task_states
-    #task_states = np.empty((0, n_state_vars))
     task_states_set = set()
     task_start_states_set = list()
     for vector in product(*options):
         task_state_tup = State(*vector)
         if is_valid_task_state(task_state_tup):
             # only add if task_state_tup is valid
-            #task_state_tups = np.vstack((task_state_tups_set, task_state_tup))
             task_states_set.add(task_state_tup)
 
             if task_state_tup.n_r != MAX_BOXES_ACC and (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state_tup[2:]):
@@ -114,7 +112,7 @@ def generate_task_state_set():
     return task_states_set, task_start_states_set
 
 def get_valid_actions(task_state_tup):
-    """Function to determine possible actions that can be taken in the given task_state_tup
+    """Function to determine possible actions that can be taken in the given task state
     """
     actions_list = list()
     if all(v == 0 for v in task_state_tup):
@@ -149,21 +147,9 @@ def get_valid_actions(task_state_tup):
 def generate_task_state_action_dict(task_states_set):
     """Function to generate the task state action dict for the box color sort task
     """
-    # generate the task action dict which is a matrix SxA having value one for those action's indices which are
-    # valid for that task_state
-    #task_state_action_map = np.empty((0, n_action_vars))
     task_state_action_dict = dict([(e, None) for e in task_states_set])
     for task_state_tup in task_states_set:
         task_state_action_dict[task_state_tup] = get_valid_actions(task_state_tup)
-        ## get the indices of the valid actions for the task_state from task_actions_dict
-        #action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
-
-        ## create a row for the current task_state
-        #current_task_state_map = np.zeros(n_action_vars)
-        #np.put(current_task_state_map, action_idx, 1)
-
-        ## add the row to the matrix
-        #task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
 
     return task_state_action_dict
 
@@ -214,10 +200,6 @@ def write_task_parameters():
     task_params = [task_states_narray, task_start_state_set, task_state_action_narray, feature_matrix]
     with open(task_parameters_file, "wb") as params_file:
         pickle.dump(task_params, params_file)
-        #pickle.dump(task_state_space, params_file)
-        #pickle.dump(possible_task_start_states, params_file)
-        #pickle.dump(task_state_action_map, params_file)
-        #pickle.dump(feature_matrix, params_file)
 
 def load_task_parameters():
     """Function to load the task parameters (state, state_action map, feature matrix)
@@ -229,20 +211,14 @@ def load_task_parameters():
 
     with open(task_parameters_file, "rb") as params_file:
         task_params = pickle.load(params_file)
-        #task_states = pickle.load(params_file)
-        #possible_task_start_states = pickle.load(params_file)
-        #task_state_action_map = pickle.load(params_file)
-        #feature_matrix = pickle.load(params_file)
 
     return task_params
 
 def load_experiment_data():
-    task_params = load_task_parameters()
-    task_states = task_params[TaskParams.task_states]
-    possible_task_start_states = task_params[TaskParams.possible_task_start_states]
-    task_state_action_map = task_params[TaskParams.task_state_action_map]
-    expert_visited_states = set()
-    expert_state_action_map = dict()
+    task_states_set, task_start_state_set = generate_task_state_set()
+    task_state_action_dict = generate_task_state_action_dict(task_states_set)
+    expert_visited_states_set = set()
+    expert_state_action_dict = dict()
     total_time_steps = 0 # cumulative number of time steps of all experiments
     total_time = 0 # cumulative time taken in seconds by all experiments
     n_files_read = 0
@@ -264,25 +240,25 @@ def load_experiment_data():
                 if current_action not in task_actions_dict:
                     logging.error("Filename: %s", expert_file_name)
                     logging.error("Line: %d", time_step+3)
-                    logging.error("current_action %s not recognized", current_action)
+                    logging.error("Action %s not recognized", current_action)
                     sys.exit()
 
-                task_state_vector = State(*map(int, fields[1:-1]))
+                task_state_tup = State(*map(int, fields[1:-1]))
 
                 if time_step == 0: # check for valid start state
-                    if task_state_vector not in possible_task_start_states:
+                    if task_state_tup not in task_start_state_set:
                         logging.error("expert_file_name: %s", expert_file_name)
                         logging.error("Line: %d", time_step+3)
-                        logging.error("State: \n%s", task_state_print(task_state_vector))
+                        logging.error("State: \n%s", task_state_print(task_state_tup))
                         logging.error("Not valid start state!")
                         sys.exit()
                 else:
                     pass
-            #print "Experiment Name: ", experiment_name
-            #print "Time steps: ", n_time_steps
+            print "Experiment Name: ", experiment_name
+            print "Time steps: ", n_time_steps
 
-    #print "Number of files read: ", n_files_read
-    #print "Total number of time steps: ", total_time_steps
+    print "Number of files read: ", n_files_read
+    print "Total number of time steps: ", total_time_steps
 
 
 #def write_task_data():
