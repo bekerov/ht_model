@@ -38,7 +38,7 @@ State = namedtuple("State",
 n_state_vars = 7
 
 # dictionary which maps action key to a tuple containing an index and explanation for the action
-task_actions = {
+task_actions_dict = {
         'TR': (0, 'Take robot\'s box from table'),
         'K' : (1, 'Keep box on table'),
         'R' : (2, 'Receive box from teammate'),
@@ -48,30 +48,30 @@ task_actions = {
         'WS': (6, 'Wait for state change'),
         'X' : (7, 'Exit task')
         }
-n_action_vars = len(task_actions)
+n_action_vars = len(task_actions_dict)
 
 # A class to hold task param indices to index into task params list after reading
 class TaskParams:
-    task_states = 0
-    possible_task_start_states = 1
-    task_state_action_map = 2
+    task_states_narray = 0
+    task_start_state_set = 1
+    task_state_action_narray = 2
     feature_matrix = 3
 
-def is_valid_task_state(task_state):
+def is_valid_task_state(task_state_tup):
     """Function to check if current task is valid, if not it will be pruned
     """
-    if task_state.e == 1:
-        # task is done, so other elements of the task_state vector cannot be non-zero
-        return all(v == 0 for v in task_state[0:-1])
-    if (task_state.n_r + task_state.n_h) > MAX_BOXES_ACC:
+    if task_state_tup.e == 1:
+        # task is done, so other elements of the task_state_tup vector cannot be non-zero
+        return all(v == 0 for v in task_state_tup[0:-1])
+    if (task_state_tup.n_r + task_state_tup.n_h) > MAX_BOXES_ACC:
         # total number of boxes on robot's side must be less than or equal to max number of boxes
         # accessable or zero when robot's side is sorted and robot is waiting for teammate
         return False
-    if task_state.t_r == 1 and task_state.b_h != 1:
+    if task_state_tup.t_r == 1 and task_state_tup.b_h != 1:
         # if the robot is transferring a box, then it must be holding the
-        # teammate's box for the task_state to be valid
+        # teammate's box for the task_state_tup to be valid
         return False
-    if (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and task_state.b_h == 1:
+    if (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and task_state_tup.b_h == 1:
         # if robot has all its accessible boxes then,
         # if the robot gets a box, the box was received from a teammate transfer
         # thus box in hand cannot be teammate's box
@@ -79,7 +79,7 @@ def is_valid_task_state(task_state):
 
     return True
 
-def generate_task_state_space():
+def generate_task_state_set():
     """Function to generate all valid task states (and possible start task states) for the box color sort task
     """
     # list of possible values for each of the state variable
@@ -94,109 +94,130 @@ def generate_task_state_space():
             ]
 
     # generate the task_states and possible_task_states
-    task_states = np.empty((0, n_state_vars))
-    possible_task_start_states = list()
+    #task_states = np.empty((0, n_state_vars))
+    task_states_set = set()
+    task_start_states_set = list()
     for vector in product(*options):
-        task_state = State(*vector)
-        if is_valid_task_state(task_state):
-            # only add if task_state is valid
-            task_states = np.vstack((task_states, task_state))
+        task_state_tup = State(*vector)
+        if is_valid_task_state(task_state_tup):
+            # only add if task_state_tup is valid
+            #task_state_tups = np.vstack((task_state_tups_set, task_state_tup))
+            task_states_set.add(task_state_tup)
 
-            if task_state.n_r != MAX_BOXES_ACC and (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state[2:]):
-                # check if the task_state is a start_state, if it is add it to list
-                possible_task_start_states.append(task_state)
+            if task_state_tup.n_r != MAX_BOXES_ACC and (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state_tup[2:]):
+                # check if the task_state_tup is a start_state, if it is add it to list
+                task_start_states_set.append(task_state_tup)
 
-    logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states))
-    logging.info("Total number of possible start states: %d", len(possible_task_start_states))
+    logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states_set))
+    logging.info("Total number of possible start states: %d", len(task_start_states_set))
 
-    return task_states, possible_task_start_states
+    return task_states_set, task_start_states_set
 
-def get_valid_actions(task_state):
-    """Function to determine possible actions that can be taken in the given task_state
+def get_valid_actions(task_state_tup):
+    """Function to determine possible actions that can be taken in the given task_state_tup
     """
-    actions = list()
-    if all(v == 0 for v in task_state):
+    actions_list = list()
+    if all(v == 0 for v in task_state_tup):
         # robot is done with its part and can only wait for teammate to change
-        # task_state
-        actions.append('WS')
-    if task_state.n_r and task_state.b_r == 0:
+        # task_state_tup
+        actions_list.append('WS')
+    if task_state_tup.n_r and task_state_tup.b_r == 0:
         # if there are robot's boxes on the robots side, take it
-        actions.append('TR')
-    if task_state.n_h and task_state.b_h == 0:
+        actions_list.append('TR')
+    if task_state_tup.n_h and task_state_tup.b_h == 0:
         # if there are human's boxes on the robots side, take it
-        actions.append('TH')
-    if task_state.b_h == 1 and task_state.t_r == 1:
+        actions_list.append('TH')
+    if task_state_tup.b_h == 1 and task_state_tup.t_r == 1:
         # if the robot is transferring it can wait for the teammate to receive
-        actions.append('WG')
-    if task_state.t_h == 1 and ((task_state.b_h + task_state.b_r) < 2):
+        actions_list.append('WG')
+    if task_state_tup.t_h == 1 and ((task_state_tup.b_h + task_state_tup.b_r) < 2):
         # if the teammate is transferring then the robot can receive,
         # provided one of its hands is free
-        actions.append('R')
-    if task_state.b_r == 1:
+        actions_list.append('R')
+    if task_state_tup.b_r == 1:
         # if the robot is holding its box, it can keep
-        actions.append('K')
-    if task_state.b_h == 1 and task_state.t_r == 0:
+        actions_list.append('K')
+    if task_state_tup.b_h == 1 and task_state_tup.t_r == 0:
         # if the robot is holding teammate's box, it can give
-        actions.append('G')
-    if task_state.e == 1:
+        actions_list.append('G')
+    if task_state_tup.e == 1:
         # if task is done, robot can exit
-        actions.append('X')
+        actions_list.append('X')
 
-    return actions
+    return actions_list
 
-def generate_task_state_action_map(task_states):
-    """Function to generate the task state action map for the box color sort task
+def generate_task_state_action_dict(task_states_set):
+    """Function to generate the task state action dict for the box color sort task
     """
-    # generate the task_state_action_map which is a matrix SxA having value one for those action's indices which are
+    # generate the task action dict which is a matrix SxA having value one for those action's indices which are
     # valid for that task_state
-    task_state_action_map = np.empty((0, n_action_vars))
-    for task_state in task_states:
-        # get the indices of the valid actions for the task_state from task_actions
-        action_idx = [task_actions[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
+    #task_state_action_map = np.empty((0, n_action_vars))
+    task_state_action_dict = dict([(e, None) for e in task_states_set])
+    for task_state_tup in task_states_set:
+        task_state_action_dict[task_state_tup] = get_valid_actions(task_state_tup)
+        ## get the indices of the valid actions for the task_state from task_actions_dict
+        #action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(State(*task_state.tolist()))]
 
-        # create a row for the current task_state
-        current_task_state_map = np.zeros(n_action_vars)
-        np.put(current_task_state_map, action_idx, 1)
+        ## create a row for the current task_state
+        #current_task_state_map = np.zeros(n_action_vars)
+        #np.put(current_task_state_map, action_idx, 1)
 
-        # add the row to the matrix
-        task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
+        ## add the row to the matrix
+        #task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
 
-    return task_state_action_map
+    return task_state_action_dict
 
-def get_feature_vector(task_state_vector, current_action):
+def get_feature_vector(task_state_tup, current_action):
     """ Function to compute the feature vector given the current task state vector and current action.
     """
-    state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
-    action_feature = [1 if action == current_action else 0 for action in task_actions.keys()]
+    state_feature = [1 if task_state_tup[0] else 0] + [1 if task_state_tup[1] else 0] + task_state_tup[2:]
+    action_feature = [1 if action == current_action else 0 for action in task_actions_dict.keys()]
     feature_vector = state_feature + action_feature
 
     return np.array(feature_vector)
 
-def generate_feature_matrix(task_states):
+def generate_feature_matrix(task_states_set):
     """ Function to generate the feature matrix, that includes features matching the state
         and actions.
     """
     feature_matrix = np.empty((0, (n_state_vars + n_action_vars)))
-    for task_state in task_states:
-        for task_action in task_actions:
-            feature_vector = get_feature_vector(list(State(*task_state.tolist())), task_action)
+    for task_state_tup in task_states_set:
+        for task_action in task_actions_dict:
+            feature_vector = get_feature_vector(list(task_state_tup), task_action)
             feature_matrix = np.vstack((feature_matrix, feature_vector))
 
     return feature_matrix
 
 def write_task_parameters():
-    """Function to generate task parameters (state, state_action map, feature matrix)
-       and dump to the task_parameters pickle file
+    """Function to generate task parameters (states set, state_action dict, feature matrix), convert non numpy structs to numpy and dump to the task_parameters pickle file
     """
-    task_states, possible_task_start_states = generate_task_state_space()
-    task_state_action_map = generate_task_state_action_map(task_states)
-    feature_matrix = generate_feature_matrix(task_states)
+    task_states_set, task_start_state_set = generate_task_state_set()
+    task_states_narray = np.empty((0, n_state_vars))
+    for task_state_tup in task_states_set:
+        task_states_narray = np.vstack((task_states_narray, task_state_tup))
 
+    task_state_action_dict = generate_task_state_action_dict(task_states_set)
+    task_state_action_narray = np.empty((0, n_action_vars))
+    for task_state_tup, actions_list in task_state_action_dict.items():
+        # get the indices of the valid actions for the task_state from task_actions_dict
+        action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
+
+        # create a row for the current task_state
+        current_task_state_vector = np.zeros(n_action_vars)
+        np.put(current_task_state_vector, action_idx, 1)
+
+        # add the row to the matrix
+        task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
+
+    feature_matrix = generate_feature_matrix(task_states_set)
+
+    task_params = [task_states_narray, task_start_state_set, task_state_action_narray, feature_matrix]
     with open(task_parameters_file, "wb") as params_file:
-        pickle.dump(task_states, params_file)
-        pickle.dump(possible_task_start_states, params_file)
-        pickle.dump(task_state_action_map, params_file)
-        pickle.dump(feature_matrix, params_file)
+        pickle.dump(task_params, params_file)
+        #pickle.dump(task_state_space, params_file)
+        #pickle.dump(possible_task_start_states, params_file)
+        #pickle.dump(task_state_action_map, params_file)
+        #pickle.dump(feature_matrix, params_file)
 
 def load_task_parameters():
     """Function to load the task parameters (state, state_action map, feature matrix)
@@ -207,12 +228,12 @@ def load_task_parameters():
         write_task_parameters()
 
     with open(task_parameters_file, "rb") as params_file:
-        task_states = pickle.load(params_file)
-        possible_task_start_states = pickle.load(params_file)
-        task_state_action_map = pickle.load(params_file)
-        feature_matrix = pickle.load(params_file)
+        task_params = pickle.load(params_file)
+        #task_states = pickle.load(params_file)
+        #possible_task_start_states = pickle.load(params_file)
+        #task_state_action_map = pickle.load(params_file)
+        #feature_matrix = pickle.load(params_file)
 
-    task_params = [task_states, possible_task_start_states, task_state_action_map, feature_matrix]
     return task_params
 
 def load_experiment_data():
@@ -227,17 +248,41 @@ def load_experiment_data():
     n_files_read = 0
     expert_feature_expectation = np.zeros(n_state_vars + n_action_vars)
 
-    for filename in glob.glob(os.path.join(expert_data_files_dir, '*.txt')):
+    for expert_file_name in glob.glob(os.path.join(expert_data_files_dir, '*.txt')):
         n_files_read = n_files_read + 1
-        with open(filename, 'r') as expert_file:
+        with open(expert_file_name, 'r') as expert_file:
             experiment_name = expert_file.readline()[:-1]
             n_time_steps = int(expert_file.readline()) # number of time steps of current experiment
             total_time_steps = total_time_steps + n_time_steps
-            print "Filename: ", experiment_name
-            print "Time steps: ", n_time_steps
 
-    print "Number of files read: ", n_files_read
-    print "Total number of time steps: ", total_time_steps
+            for time_step in range(n_time_steps):
+                line = expert_file.readline()
+                fields = line.split()
+                experiment_time = int(fields[0])
+                current_action = fields[-1]
+
+                if current_action not in task_actions_dict:
+                    logging.error("Filename: %s", expert_file_name)
+                    logging.error("Line: %d", time_step+3)
+                    logging.error("current_action %s not recognized", current_action)
+                    sys.exit()
+
+                task_state_vector = State(*map(int, fields[1:-1]))
+
+                if time_step == 0: # check for valid start state
+                    if task_state_vector not in possible_task_start_states:
+                        logging.error("expert_file_name: %s", expert_file_name)
+                        logging.error("Line: %d", time_step+3)
+                        logging.error("State: \n%s", task_state_print(task_state_vector))
+                        logging.error("Not valid start state!")
+                        sys.exit()
+                else:
+                    pass
+            #print "Experiment Name: ", experiment_name
+            #print "Time steps: ", n_time_steps
+
+    #print "Number of files read: ", n_files_read
+    #print "Total number of time steps: ", total_time_steps
 
 
 #def write_task_data():
@@ -251,11 +296,11 @@ def load_experiment_data():
     #total_time = 0 # cumulative time taken in seconds by all experiments
     #n_files = 0
     ##mu_e = np.zeros(n_state_vars-1) # we are ignoring the exit task bit (doesn't add any information, always 1 on mu_e)
-    #mu_e = np.zeros(n_state_vars + len(task_actions))
+    #mu_e = np.zeros(n_state_vars + len(task_actions_dict))
 
-    #for filename in glob.glob(os.path.join(data_files_path, '*.txt')):
+    #for expert_file_name in glob.glob(os.path.join(data_files_path, '*.txt')):
         #n_files = n_files + 1
-        #with open(filename, 'r') as in_file:
+        #with open(expert_file_name, 'r') as in_file:
             #e_name = in_file.readline()[:-1] # experiment name
             #n_steps = int(in_file.readline()) # number of time steps of current experiment
             #total_steps = total_steps + n_steps
@@ -266,8 +311,8 @@ def load_experiment_data():
                 #e_time = int(fields[0]) # time taken in seconds by current experiment
                 #current_action = fields[-1]
 
-                #if current_action not in task_actions:
-                    #logging.error("Filename: %s", e_name)
+                #if current_action not in task_actions_dict:
+                    #logging.error("expert_file_name: %s", e_name)
                     #logging.error("Line: %d", i+3)
                     #logging.error("current_action %s not recognized", current_action)
                     #sys.exit()
@@ -278,14 +323,14 @@ def load_experiment_data():
 
                 #if i == 0:
                     #if task_state not in task_start_states:
-                        #logging.error("Filename: %s", e_name)
+                        #logging.error("expert_file_name: %s", e_name)
                         #logging.error("Line: %d", i+3)
                         #logging.error("State: %s", str(task_state))
                         #logging.error("Not valid start state!")
                         #sys.exit()
                 #else:
                     #if task_state not in task_states:
-                        #logging.error("Filename: %s", e_name)
+                        #logging.error("expert_file_name: %s", e_name)
                         #logging.error("Line: %d", i+3)
                         #logging.error("State: %s", str(task_state))
                         #logging.error("Not valid start state!")
@@ -374,7 +419,7 @@ def task_state_print(task_state):
     Returns:
         string: Complete explanation of the task_state returned as a string which can be printed
     """
-    s = ['task_state Explanation:\n']
+    s = ['State Explanation:\n']
     s.append('\tNumber of robot\'s boxes: ' + str(task_state.n_r) + '\n')
     s.append('\tNumber of teammate\'s boxes: ' + str(task_state.n_h) + '\n')
     s.append('\tIs robot transferring? : ' + str(bool(task_state.t_r)) + '\n')
