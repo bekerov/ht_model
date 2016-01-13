@@ -37,8 +37,12 @@ import taskSetup as ts
 def main():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    task_states, possible_task_start_states, task_state_action_map = ts.generate_task_state_action_space()
-    print task_state_action_map
+    task_states, possible_task_start_states, task_state_action_map, feature_matrix = ts.load_task_parameters()
+    print "Start states:"
+    print possible_task_start_states
+    print "State space: ", task_states.shape, task_states.size
+    print "Action space: ", task_state_action_map.shape, task_state_action_map.size
+    print "Feature matrix: ", feature_matrix.shape, feature_matrix.size
     #_, task_start_states, task_state_action_map, _ = ts.load_state_data()
     #expert_visited_states, expert_state_action_map, _, _ = ts.read_task_data()
     #print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(task_state_action_map, expert_state_action_map), get_common_policy(task_state_action_map, expert_state_action_map), random.choice(tuple(task_start_states)))

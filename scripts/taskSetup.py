@@ -21,7 +21,7 @@ MAX_BOXES_ACC = MAX_BOXES/2
 
 ###################### Change the path ###################
 expert_data_files_dir = "../data/sample"
-task_data_file = "data/task_data.pickle"
+task_parameters_file = "data/task_parameters.pickle"
 #states_file_path = "../data/states.pickle"
 #task_data_path = "../data/task_data.pickle"
 
@@ -50,62 +50,30 @@ task_actions = {
         }
 n_action_vars = len(task_actions)
 
-
-def generate_task_state_action_space():
-    """Function to generate all state and action space for the box color sort task
+def is_valid_task_state(task_state):
+    """Function to check if current task is valid, if not it will be pruned
     """
-    def is_valid_task_state(task_state):
-        """Function to check if current task is valid, if not it will be pruned
-        """
-        if task_state.e == 1:
-            # task is done, so other elements of the task_state vector cannot be non-zero
-            return all(v == 0 for v in task_state[0:-1])
-        if (task_state.n_r + task_state.n_h) > MAX_BOXES_ACC:
-            # total number of boxes on robot's side must be less than or equal to max number of boxes
-            # accessable or zero when robot's side is sorted and robot is waiting for teammate
-            return False
-        if task_state.t_r == 1 and task_state.b_h != 1:
-            # if the robot is transferring a box, then it must be holding the
-            # teammate's box for the task_state to be valid
-            return False
-        if (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and task_state.b_h == 1:
-            # if robot has all its accessible boxes then,
-            # if the robot gets a box, the box was received from a teammate transfer
-            # thus box in hand cannot be teammate's box
-            return False
-        return True
+    if task_state.e == 1:
+        # task is done, so other elements of the task_state vector cannot be non-zero
+        return all(v == 0 for v in task_state[0:-1])
+    if (task_state.n_r + task_state.n_h) > MAX_BOXES_ACC:
+        # total number of boxes on robot's side must be less than or equal to max number of boxes
+        # accessable or zero when robot's side is sorted and robot is waiting for teammate
+        return False
+    if task_state.t_r == 1 and task_state.b_h != 1:
+        # if the robot is transferring a box, then it must be holding the
+        # teammate's box for the task_state to be valid
+        return False
+    if (task_state.n_r + task_state.n_h) == MAX_BOXES_ACC and task_state.b_h == 1:
+        # if robot has all its accessible boxes then,
+        # if the robot gets a box, the box was received from a teammate transfer
+        # thus box in hand cannot be teammate's box
+        return False
+    return True
 
-    def get_valid_actions(task_state):
-        """Function to determine possible actions that can be taken in the given task_state
-        """
-        actions = list()
-        if all(v == 0 for v in task_state):
-            # robot is done with its part and can only wait for teammate to change
-            # task_state
-            actions.append('WS')
-        if task_state.n_r and task_state.b_r == 0:
-            # if there are robot's boxes on the robots side, take it
-            actions.append('TR')
-        if task_state.n_h and task_state.b_h == 0:
-            # if there are human's boxes on the robots side, take it
-            actions.append('TH')
-        if task_state.b_h == 1 and task_state.t_r == 1:
-            # if the robot is transferring it can wait for the teammate to receive
-            actions.append('WG')
-        if task_state.t_h == 1 and ((task_state.b_h + task_state.b_r) < 2):
-            # if the teammate is transferring then the robot can receive,
-            # provided one of its hands is free
-            actions.append('R')
-        if task_state.b_r == 1:
-            # if the robot is holding its box, it can keep
-            actions.append('K')
-        if task_state.b_h == 1 and task_state.t_r == 0:
-            # if the robot is holding teammate's box, it can give
-            actions.append('G')
-        if task_state.e == 1:
-            # if task is done, robot can exit
-            actions.append('X')
-        return actions
+def generate_task_state_space():
+    """Function to generate all valid task states (and possible start task states) for the box color sort task
+    """
 
     # list of possible values for each of the state variable
     options = [
@@ -131,6 +99,45 @@ def generate_task_state_action_space():
                 # check if the task_state is a start_state, if it is add it to list
                 possible_task_start_states.append(task_state)
 
+    logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states))
+    logging.info("Total number of possible start states: %d", len(possible_task_start_states))
+    return task_states, possible_task_start_states
+
+def get_valid_actions(task_state):
+    """Function to determine possible actions that can be taken in the given task_state
+    """
+    actions = list()
+    if all(v == 0 for v in task_state):
+        # robot is done with its part and can only wait for teammate to change
+        # task_state
+        actions.append('WS')
+    if task_state.n_r and task_state.b_r == 0:
+        # if there are robot's boxes on the robots side, take it
+        actions.append('TR')
+    if task_state.n_h and task_state.b_h == 0:
+        # if there are human's boxes on the robots side, take it
+        actions.append('TH')
+    if task_state.b_h == 1 and task_state.t_r == 1:
+        # if the robot is transferring it can wait for the teammate to receive
+        actions.append('WG')
+    if task_state.t_h == 1 and ((task_state.b_h + task_state.b_r) < 2):
+        # if the teammate is transferring then the robot can receive,
+        # provided one of its hands is free
+        actions.append('R')
+    if task_state.b_r == 1:
+        # if the robot is holding its box, it can keep
+        actions.append('K')
+    if task_state.b_h == 1 and task_state.t_r == 0:
+        # if the robot is holding teammate's box, it can give
+        actions.append('G')
+    if task_state.e == 1:
+        # if task is done, robot can exit
+        actions.append('X')
+    return actions
+
+def generate_task_state_action_map(task_states):
+    """Function to generate the task state action map for the box color sort task
+    """
     # generate the task_state_action_map which is a matrix SxA having value one for those action's indices which are
     # valid for that task_state
     task_state_action_map = np.empty((0, n_action_vars))
@@ -145,29 +152,52 @@ def generate_task_state_action_space():
         # add the row to the matrix
         task_state_action_map = np.vstack((task_state_action_map, current_task_state_map))
 
-    logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states))
-    logging.info("start states length: %d", len(possible_task_start_states))
-    return task_states, possible_task_start_states, task_state_action_map
+    return task_state_action_map
 
-#def get_phi(task_state_vector, current_action):
-    #""" Function to return the feature vector given the state vector and action.
-    #Arg:
-        #List: state vector
-        #String: current action
-    #Return
-        #np_array: phi
-    #"""
-    #state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
-    #action_feature = [1 if action == current_action else 0 for action in list(task_actions)]
-    #feature_vector = state_feature + action_feature
-    #return np.array(feature_vector)
+def get_feature_vector(task_state_vector, current_action):
+    """ Function to return the feature vector given the current task state vector and current action.
+    """
+    state_feature = [1 if task_state_vector[0] else 0] + [1 if task_state_vector[1] else 0] + task_state_vector[2:]
+    action_feature = [1 if action == current_action else 0 for action in task_actions.keys()]
+    feature_vector = state_feature + action_feature
+    return np.array(feature_vector)
 
-#def generate_phi(task_states):
-    #phi = np.empty((0, (n_state_vars + len(task_actions))))
-    #for task_state in task_states:
-        #for task_action in task_actions:
-            #phi = np.vstack((phi, get_phi(list(task_state), task_action)))
-    #return phi
+def generate_feature_matrix(task_states):
+    feature_matrix = np.empty((0, (n_state_vars + n_action_vars)))
+    for task_state in task_states:
+        for task_action in task_actions:
+            feature_vector = get_feature_vector(list(State(*task_state.tolist())), task_action)
+            feature_matrix = np.vstack((feature_matrix, feature_vector))
+
+    return feature_matrix
+
+def write_task_parameters():
+    """Function to generate task parameters (state, state_action map, feature matrix)
+       and dump to the task_parameters pickle file
+    """
+    task_states, possible_task_start_states = generate_task_state_space()
+    task_state_action_map = generate_task_state_action_map(task_states)
+    feature_matrix = generate_feature_matrix(task_states)
+
+    with open(task_parameters_file, "wb") as params_file:
+        pickle.dump(task_states, params_file)
+        pickle.dump(possible_task_start_states, params_file)
+        pickle.dump(task_state_action_map, params_file)
+        pickle.dump(feature_matrix, params_file)
+
+def load_task_parameters():
+    """Function to load the task parameters (state, state_action map, feature matrix)
+       from saved disk file
+    """
+    if not os.path.isfile(task_parameters_file):
+        logging.info("Generating task parameters file %s" % task_parameters_file)
+        write_task_parameters()
+    with open(task_parameters_file, "rb") as params_file:
+        task_states = pickle.load(params_file)
+        possible_task_start_states = pickle.load(params_file)
+        task_state_action_map = pickle.load(params_file)
+        feature_matrix = pickle.load(params_file)
+    return task_states, possible_task_start_states, task_state_action_map, feature_matrix
 
 #def write_task_data():
     #"""Function to read the data files that contains the trajectories of human-human teaming for box color sort task and write out the processed python data structions.
@@ -295,20 +325,21 @@ def generate_task_state_action_space():
         #pickle.dump(task_state_action_map, states_file)
         #pickle.dump(phi, states_file)
 
-#def state_print(state):
-    #"""Function to pretty print the state of the task with elaborate explanations
-    #Arg:
-        #State: state of the task
-    #Returns:
-        #string: Complete explanation of the state returned as a string which can be printed
-    #"""
-    #s = ['State Explanation:\n']
-    #s.append('\tNumber of robot\'s boxes: ' + str(state.n_r) + '\n')
-    #s.append('\tNumber of teammate\'s boxes: ' + str(state.n_h) + '\n')
-    #s.append('\tIs robot transferring? : ' + str(bool(state.t_r)) + '\n')
-    #s.append('\tIs teammate transferring? : ' + str(bool(state.t_h)) + '\n')
-    #s.append('\tIs robot holding its box? : ' + str(bool(state.b_r)) + '\n')
-    #s.append('\tIs robot holding teammate\'s box? : ' + str(bool(state.b_h)) + '\n')
-    #s.append('\tHas the task completed? ' + str(bool(state.e)) + '\n')
-    #return ''.join(s)
+
+def task_state_print(task_state):
+    """Function to pretty print the task_state of the task with elaborate explanations
+    Arg:
+        task_state: task_state of the task
+    Returns:
+        string: Complete explanation of the task_state returned as a string which can be printed
+    """
+    s = ['task_state Explanation:\n']
+    s.append('\tNumber of robot\'s boxes: ' + str(task_state.n_r) + '\n')
+    s.append('\tNumber of teammate\'s boxes: ' + str(task_state.n_h) + '\n')
+    s.append('\tIs robot transferring? : ' + str(bool(task_state.t_r)) + '\n')
+    s.append('\tIs teammate transferring? : ' + str(bool(task_state.t_h)) + '\n')
+    s.append('\tIs robot holding its box? : ' + str(bool(task_state.b_r)) + '\n')
+    s.append('\tIs robot holding teammate\'s box? : ' + str(bool(task_state.b_h)) + '\n')
+    s.append('\tHas the task completed? ' + str(bool(task_state.e)) + '\n')
+    return ''.join(s)
 
