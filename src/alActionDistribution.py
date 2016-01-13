@@ -69,6 +69,25 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
     return mu_bar_curr
 
+def numpyfy_state_action_dict(state_action_dict):
+    state_action_narray = np.empty((0, ts.n_action_vars))
+    for task_state_tup, action_dict in state_action_dict.items():
+        # get the indices of the valid actions for the task_state_tup from state_action_dict
+        action_idx = [ts.task_actions_dict[_][0] for _ in action_dict.keys()]
+
+        # create a row (vector) for the current task_state_tup
+        current_task_vector = np.zeros(ts.n_action_vars)
+        np.put(current_task_vector, action_idx, action_dict.values())
+
+        # add the row to the matrix
+        state_action_narray = np.vstack((state_action_narray, current_task_vector))
+
+        #print task_state_tup
+        #print action_dict
+        #print current_task_vector
+
+    return state_action_narray
+
 def q_learning():
     pass
 
@@ -105,16 +124,10 @@ def main():
     mu_bar_prev_r1 = mu_bar_curr_r1
     mu_bar_prev_r2 = mu_bar_curr_r2
 
-    pprint.pprint((r1_state_action_distribution_dict))
-    #my_narray = np.empty((0, ts.n_action_vars))
-    for task_state_tup, action_dict in r1_state_action_distribution_dict.items():
-        aidx = [ts.task_actions_dict[_][0] for _ in action_dict.keys()]
-        temp = np.zeros(ts.n_action_vars)
-        np.put(temp, aidx, action_dict.values())
+    r1_state_action_dist = numpyfy_state_action_dict(r1_state_action_distribution_dict)
+    r2_state_action_dist = numpyfy_state_action_dict(r2_state_action_distribution_dict)
 
-        print task_state_tup
-        print action_dict
-        print temp
+    print r1_state_action_dist.shape, r1_state_action_dist.size
     #q_learning(pi_r1, reward_r1, pi_r2, reward_r2)
 
     #while True:

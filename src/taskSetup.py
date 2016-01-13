@@ -246,7 +246,7 @@ def load_experiment_data(task_states_set, task_start_state_set):
 
     return expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step
 
-def numpyfy_states_set(task_states_set):
+def numpyfy_task_states_set(task_states_set):
     """Wrapper function to convert non numpy struct set into numpy narray for computation
     """
     task_states_narray = np.empty((0, n_state_vars))
@@ -255,7 +255,7 @@ def numpyfy_states_set(task_states_set):
 
     return task_states_narray
 
-def numpyfy_state_action_dict(task_state_action_dict):
+def numpyfy_task_state_action_dict(task_state_action_dict):
     """Wrapper function to convert non numpy struct dict into numpy narray for computation
     """
     task_state_action_narray = np.empty((0, n_action_vars))
@@ -277,8 +277,8 @@ def write_task_parameters():
     """
     task_states_set, task_start_state_set = generate_task_state_set()
     task_state_action_dict = generate_task_state_action_dict(task_states_set)
-    task_states_narray = numpyfy_states_set(task_states_set)
-    task_state_action_narray = numpyfy_state_action_dict(task_state_action_dict)
+    task_states_narray = numpyfy_task_states_set(task_states_set)
+    task_state_action_narray = numpyfy_task_state_action_dict(task_state_action_dict)
 
     feature_matrix = generate_feature_matrix(task_states_set)
     expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
