@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 
-import sys
-import os
-import glob
 import random
 import logging
-import numpy as np
-import pprint
-
-from termcolor import colored
 
 import taskSetup as ts
-#import simulationFunctions as sf
+import simulationFunctions as sf
 
 """This module creates an expert action distribution for the box color sort task
    based on the most frequent actions taken by humans given a particular
@@ -42,12 +35,13 @@ def main():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     task_params = ts.load_task_parameters()
     task_states_set = task_params[ts.TaskParams.task_states_set]
+    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
     task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
     expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
     expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-    expert_action_distribution = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
-    print pprint.pformat(expert_action_distribution)
-    #print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(get_common_policy(task_state_action_map, expert_state_action_map), get_common_policy(task_state_action_map, expert_state_action_map), random.choice(tuple(task_start_states)))
+    action_distribution_agent1 = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
+    action_distribution_agent2 = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
+    print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(action_distribution_agent1,action_distribution_agent2, random.choice(tuple(task_start_state_set)))
 
 if __name__=='__main__':
     main()
