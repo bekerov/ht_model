@@ -28,42 +28,49 @@ def simulate_random_action_distribution():
     task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
     task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 
-    agent1_action_distribution = compute_random_action_distribution(task_state_action_dict)
-    agent2_action_distribution = compute_random_action_distribution(task_state_action_dict)
-    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(agent1_action_distribution, agent2_action_distribution, random.choice(tuple(task_start_state_set)))
+    r1_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    r2_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    print "Total number of actions by agents using random policy is %d" % sf.run_simulation(r1_action_distribution, r2_action_distribution, random.choice(tuple(task_start_state_set)))
 
-def compute_normalized_feature_expectation(task_start_state_set, agent1_action_distribution, agent2_action_distribution, n_trials):
+def compute_normalized_feature_expectation(task_start_state_set, r1_action_distribution, r2_action_distribution, n_trials):
     """Function to compute the feature expectation of the agents by running the simulation for n_trials. The feature expectations are normalized to bind them within 1
     """
-    agent1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
-    agent2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+    r1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+    r2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
 
     for trial in range(n_trials):
         start_state = random.choice(tuple(task_start_state_set))
-        agent1_state_tup = start_state
-        agent2_state_tup = start_state
+        r1_state_tup = start_state
+        r2_state_tup = start_state
         while True:
-            agent1_action = sf.select_random_action(agent1_action_distribution[agent1_state_tup])
-            agent2_action = sf.select_random_action(agent2_action_distribution[agent2_state_tup])
+            r1_action = sf.select_random_action(r1_action_distribution[r1_state_tup])
+            r2_action = sf.select_random_action(r2_action_distribution[r2_state_tup])
 
-            if agent1_action == 'X' and agent2_action == 'X':
+            if r1_action == 'X' and r2_action == 'X':
                 break
 
-            agent1_state_tup, agent2_state_tup = sf.simulate_next_state(agent1_action, agent1_state_tup, agent2_state_tup) # first agent acting
-            agent2_state_tup, agent1_state_tup = sf.simulate_next_state(agent2_action, agent2_state_tup, agent1_state_tup) # second agent acting
+            r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+            r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
 
             # compute feature expectations of the agents
-            agent1_feature_expectation = agent1_feature_expectation + ts.get_feature_vector(agent1_state_tup, agent1_action)
-            agent2_feature_expectation = agent2_feature_expectation + ts.get_feature_vector(agent2_state_tup, agent2_action)
+            r1_feature_expectation = r1_feature_expectation + ts.get_feature_vector(r1_state_tup, r1_action)
+            r2_feature_expectation = r2_feature_expectation + ts.get_feature_vector(r2_state_tup, r2_action)
 
-    agent1_feature_expectation = agent1_feature_expectation/n_trials
-    agent2_feature_expectation = agent2_feature_expectation/n_trials
+    r1_feature_expectation = r1_feature_expectation/n_trials
+    r2_feature_expectation = r2_feature_expectation/n_trials
 
     # normalizing feature expection to bind the first norm of rewards and w within 1
-    return agent1_feature_expectation/np.linalg.norm(agent1_feature_expectation), agent2_feature_expectation/np.linalg.norm(agent2_feature_expectation)
+    return r1_feature_expectation/np.linalg.norm(r1_feature_expectation), r2_feature_expectation/np.linalg.norm(r2_feature_expectation)
+
+def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
+    x = mu_curr - mu_bar_prev
+    y = mu_e - mu_bar_prev
+    mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
+    return mu_bar_curr
 
 def main():
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
+    np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     task_params = ts.load_task_parameters()
     task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
     task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
@@ -73,79 +80,65 @@ def main():
     task_state_action_narray = task_params[ts.TaskParams.task_state_action_narray]
     n_trials = task_params[ts.TaskParams.n_trials]
 
+    # normalizing expert feature expection to bind the first norm of rewards and w within 1
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation)
-    agent1_action_distribution = compute_random_action_distribution(task_state_action_dict)
-    agent2_action_distribution = compute_random_action_distribution(task_state_action_dict)
 
-    mu_agent1_normalized, mu_agent2_normalized = compute_normalized_feature_expectation(task_start_state_set, agent1_action_distribution, agent2_action_distribution, n_trials)
-    #_, _, mu_e, n_trials = ts.read_task_data()
-    #logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
-    #np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    ##simulate_random_poliy(task_start_states, task_state_action_map)
+    # first iteration
+    i = 1
+    r1_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    r2_action_distribution = compute_random_action_distribution(task_state_action_dict)
+    mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(task_start_state_set, r1_action_distribution, r2_action_distribution, n_trials)
+    mu_bar_curr_r1 = mu_curr_r1
+    mu_bar_curr_r2 = mu_curr_r2
 
-    ## normalizing feature expection to bind the first norm of rewards and w within 1
-    #print mu_e
-    #mu_e = mu_e/np.linalg.norm(mu_e)
-    ## first iteration
-    #pi_r1 = init_random_policy()
-    #pi_r2 = init_random_policy()
-    #mu_curr_r1, mu_curr_r2 = get_mu(pi_r1, pi_r2, n_trials)
-    #i = 1
+    w_r1 = (mu_e_normalized - mu_bar_curr_r1)
+    w_r2 = (mu_e_normalized - mu_bar_curr_r2)
+    t_r1 = np.linalg.norm(w_r1)
+    t_r2 = np.linalg.norm(w_r2)
+    reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
+    reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
 
-    #mu_bar_curr_r1 = mu_curr_r1
-    #mu_bar_curr_r2 = mu_curr_r2
-    #w_r1 = (mu_e - mu_bar_curr_r1)
-    #w_r2 = (mu_e - mu_bar_curr_r2)
-    #t_r1 = np.linalg.norm(w_r1)
-    #t_r2 = np.linalg.norm(w_r2)
-    #reward_r1 = np.reshape(np.dot(phi_matrix, w_r1), (len(task_states), len(ts.task_actions)))
-    #reward_r2 = np.reshape(np.dot(phi_matrix, w_r2), (len(task_states), len(ts.task_actions)))
-
-    ######### Use reward_table on mdp to get new policy  ###########
-    #pi_r1 = init_random_policy() # this should come from mdp solution
-    #pi_r2 = init_random_policy() # this should come from mdp solution
-    #mu_curr_r1, mu_curr_r2 = get_mu(pi_r1, pi_r2, n_trials)
-    #mu_bar_prev_r1 = mu_bar_curr_r1
-    #mu_bar_prev_r2 = mu_bar_curr_r2
+    mu_bar_prev_r1 = mu_bar_curr_r1
+    mu_bar_prev_r2 = mu_bar_curr_r2
     #q_learning(pi_r1, reward_r1, pi_r2, reward_r2)
 
+    while True:
+        print "Iteration: ", i
+        print "mu_bar_prev_r1 = ", mu_bar_prev_r1
+        print "mu_bar_prev_r2 = ", mu_bar_prev_r2
 
-    # while max(t_r1, t_r2) > 0.1:
-        # print "Iteration: ", i
-        # print "mu_bar_prev_r1 = ", mu_bar_prev_r1
-        # print "mu_bar_prev_r2 = ", mu_bar_prev_r2
-        # x = mu_curr_r1 - mu_bar_prev_r1
-        # y = mu_e - mu_bar_prev_r1
-        # mu_bar_curr_r1 = mu_bar_prev_r1 + (np.dot(x.T, y)/np.dot(x.T, x)) * x
-        # x = mu_curr_r2 - mu_bar_prev_r2
-        # y = mu_e - mu_bar_prev_r2
-        # mu_bar_curr_r2 = mu_bar_prev_r2 + (np.dot(x.T, y)/np.dot(x.T, x)) * x
-        # rstate_idx = random.randrange(0, len(task_states))
-        # print "mu_bar_curr_r1 = ", mu_bar_curr_r1
-        # print "mu_bar_curr_r2 = ", mu_bar_curr_r2
-        # print "reward_r1[", rstate_idx, "] = ", reward_r1[rstate_idx]
-        # print "reward_r2[", rstate_idx, "] = ", reward_r2[rstate_idx]
-        # print "t_r1 = ", np.round(t_r1, 3)
-        # print "t_r2 = ", np.round(t_r2, 3)
-        # w_r1 = (mu_e - mu_bar_curr_r1)
-        # w_r2 = (mu_e - mu_bar_curr_r2)
-        # t_r1 = np.linalg.norm(w_r1)
-        # t_r2 = np.linalg.norm(w_r2)
-        # reward_r1 = np.reshape(np.dot(phi_matrix, w_r1), (len(task_states), len(ts.task_actions)))
-        # reward_r2 = np.reshape(np.dot(phi_matrix, w_r2), (len(task_states), len(ts.task_actions)))
-        # i = i + 1
+        ##################### Use computed reward on qlearning algorithm to compute new action_distribution ##########################
+        r1_action_distribution = compute_random_action_distribution(task_state_action_dict) # this should come from mdp solution
+        r2_action_distribution = compute_random_action_distribution(task_state_action_dict) # this should come from mdp solution
+        mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(task_start_state_set, r1_action_distribution, r2_action_distribution, n_trials)
+        mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
+        mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
 
-        # ##### Use reward_table on mdp to get new policy  ###########
-        # pi_r1 = init_random_policy() # this should come from mdp solution
-        # pi_r2 = init_random_policy() # this should come from mdp solution
-        # mu_curr_r1, mu_curr_r2 = get_mu(pi_r1, pi_r2, n_trials)
-        # mu_bar_prev_r1 = mu_bar_curr_r1
-        # mu_bar_prev_r2 = mu_bar_curr_r2
-        # print "**********************************************************"
-        # user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        # if user_input.upper() == 'Q':
-            # break;
-        # print "**********************************************************"
+        rstate_idx = random.randrange(0, len(task_states_narray))
+        print "mu_bar_curr_r1 = ", mu_bar_curr_r1
+        print "mu_bar_curr_r2 = ", mu_bar_curr_r2
+        print "reward_r1[", rstate_idx, "] = ", reward_r1[rstate_idx]
+        print "reward_r2[", rstate_idx, "] = ", reward_r2[rstate_idx]
+        print "t_r1 = ", np.round(t_r1, 3)
+        print "t_r2 = ", np.round(t_r2, 3)
+
+        # update the weights
+        w_r1 = (mu_e_normalized - mu_bar_curr_r1)
+        w_r2 = (mu_e_normalized - mu_bar_curr_r2)
+        t_r1 = np.linalg.norm(w_r1)
+        t_r2 = np.linalg.norm(w_r2)
+        reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
+        reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
+
+        print "**********************************************************"
+        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+        if user_input.upper() == 'Q':
+           break;
+        print "**********************************************************"
+
+        i = i + 1
+        mu_bar_prev_r1 = mu_bar_curr_r1
+        mu_bar_prev_r2 = mu_bar_curr_r2
 
 #def q_learning(pi_r1, reward_r1, pi_r2, reward_r2):
     #q_r1 = init_random_policy(False)

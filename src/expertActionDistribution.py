@@ -39,9 +39,9 @@ def simulate_expert_action_distribution():
     task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
     expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
     expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-    agent1_action_distribution = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
-    agent2_action_distribution = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
-    print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(agent1_action_distribution,agent2_action_distribution, random.choice(tuple(task_start_state_set)))
+    r1_action_distribution = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
+    r2_action_distribution = compute_expert_action_distribution(task_state_action_dict, expert_state_action_dict)
+    print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(r1_action_distribution,r2_action_distribution, random.choice(tuple(task_start_state_set)))
 
 if __name__=='__main__':
     simulate_expert_action_distribution()
