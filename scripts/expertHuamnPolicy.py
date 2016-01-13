@@ -31,7 +31,7 @@ def compute_expert_action_distribution(task_state_action_dict, expert_state_acti
     return expert_action_distribution
 
 
-def main():
+def simulate_expert_action_distribution():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
     task_params = ts.load_task_parameters()
     task_states_set = task_params[ts.TaskParams.task_states_set]
@@ -44,4 +44,4 @@ def main():
     print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(action_distribution_agent1,action_distribution_agent2, random.choice(tuple(task_start_state_set)))
 
 if __name__=='__main__':
-    main()
+    simulate_expert_action_distribution()
