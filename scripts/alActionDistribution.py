@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 
-import sys
 import logging
-import cPickle as pickle
 import random
-import pprint
 import numpy as np
-
-from termcolor import colored
 
 import taskSetup as ts
 import simulationFunctions as sf
