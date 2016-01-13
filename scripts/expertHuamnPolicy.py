@@ -36,9 +36,8 @@ import taskSetup as ts
 
 def main():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
-    ts.load_experiment_data()
-    #np.set_printoptions(formatter={'float': '{: 1.3f}'.format}, threshold=np.nan)
-    #task_params = ts.load_task_parameters()
+    np.set_printoptions(formatter={'float': '{: 1.3f}'.format}, threshold=np.nan)
+    task_params = ts.load_task_parameters()
     #task_states_narray = task_params[ts.TaskParams.task_states_narray]
     #task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
     #task_state_action_narray = task_params[ts.TaskParams.task_state_action_narray]

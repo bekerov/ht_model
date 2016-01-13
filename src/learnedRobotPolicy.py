@@ -79,8 +79,8 @@ def q_learning(pi_r1, reward_r1, pi_r2, reward_r2):
 
             state_r1 = state_r1_prime
             state_r2 = state_r2_prime
-    print pprint.pprint(q_r1)
-    print pprint.pprint(q_r2)
+    #print pprint.pprint(q_r1)
+    #print pprint.pprint(q_r2)
 
 
 def main():
@@ -91,6 +91,7 @@ def main():
     #simulate_random_poliy(task_start_states, task_state_action_map)
 
     # normalizing feature expection to bind the first norm of rewards and w within 1
+    print mu_e
     mu_e = mu_e/np.linalg.norm(mu_e)
     # first iteration
     pi_r1 = init_random_policy()

@@ -56,6 +56,11 @@ class TaskParams:
     task_start_state_set = 1
     task_state_action_narray = 2
     feature_matrix = 3
+    expert_visited_states_set = 4
+    expert_state_action_dict = 5
+    expert_feature_expectation = 6
+    n_trials = 7
+    time_per_step = 8
 
 def is_valid_task_state(task_state_tup):
     """Function to check if current task is valid, if not it will be pruned
@@ -156,7 +161,8 @@ def generate_task_state_action_dict(task_states_set):
 def get_feature_vector(task_state_tup, current_action):
     """ Function to compute the feature vector given the current task state vector and current action.
     """
-    state_feature = [1 if task_state_tup[0] else 0] + [1 if task_state_tup[1] else 0] + task_state_tup[2:]
+    task_state_list = list(task_state_tup)
+    state_feature = [1 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
     action_feature = [1 if action == current_action else 0 for action in task_actions_dict.keys()]
     feature_vector = state_feature + action_feature
 
@@ -169,7 +175,7 @@ def generate_feature_matrix(task_states_set):
     feature_matrix = np.empty((0, (n_state_vars + n_action_vars)))
     for task_state_tup in task_states_set:
         for task_action in task_actions_dict:
-            feature_vector = get_feature_vector(list(task_state_tup), task_action)
+            feature_vector = get_feature_vector(task_state_tup, task_action)
             feature_matrix = np.vstack((feature_matrix, feature_vector))
 
     return feature_matrix
@@ -196,8 +202,10 @@ def write_task_parameters():
         task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
 
     feature_matrix = generate_feature_matrix(task_states_set)
+    expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
 
-    task_params = [task_states_narray, task_start_state_set, task_state_action_narray, feature_matrix]
+    task_params = [task_states_narray, task_start_state_set, task_state_action_narray, feature_matrix, expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step]
+
     with open(task_parameters_file, "wb") as params_file:
         pickle.dump(task_params, params_file)
 
@@ -214,9 +222,9 @@ def load_task_parameters():
 
     return task_params
 
-def load_experiment_data():
-    task_states_set, task_start_state_set = generate_task_state_set()
-    task_state_action_dict = generate_task_state_action_dict(task_states_set)
+def load_experiment_data(task_states_set, task_start_state_set):
+    """Function to read exert data files (after manual video processed) and extract visited states, taken actions and feature expectation
+    """
     expert_visited_states_set = set()
     expert_state_action_dict = dict()
     total_time_steps = 0 # cumulative number of time steps of all experiments
@@ -234,7 +242,7 @@ def load_experiment_data():
             for time_step in range(n_time_steps):
                 line = expert_file.readline()
                 fields = line.split()
-                experiment_time = int(fields[0])
+                experiment_time = int(fields[0]) # current time t from t_0
                 current_action = fields[-1]
 
                 if current_action not in task_actions_dict:
@@ -253,12 +261,35 @@ def load_experiment_data():
                         logging.error("Not valid start state!")
                         sys.exit()
                 else:
-                    pass
-            print "Experiment Name: ", experiment_name
-            print "Time steps: ", n_time_steps
+                    if task_state_tup not in task_states_set:
+                        logging.error("expert_file_name: %s", expert_file_name)
+                        logging.error("Line: %d", time_step+3)
+                        logging.error("State: %s", task_state_print(task_state_tup))
+                        logging.error("Not valid state!")
+                        sys.exit()
 
-    print "Number of files read: ", n_files_read
-    print "Total number of time steps: ", total_time_steps
+                expert_feature_expectation = expert_feature_expectation + get_feature_vector(task_state_tup, current_action)
+                expert_visited_states_set.add(task_state_tup)
+                if task_state_tup not in expert_state_action_dict:
+                    expert_state_action_dict[task_state_tup] = dict()
+                if current_action in expert_state_action_dict[task_state_tup]:
+                    expert_state_action_dict[task_state_tup][current_action] = expert_state_action_dict[task_state_tup][current_action] + 1
+                else:
+                    expert_state_action_dict[task_state_tup][current_action] = 1
+            #print "Experiment Name: ", experiment_name
+            #print "Time steps: ", n_time_steps
+        total_time = total_time + experiment_time/2.0 # dividing by 2.0 since, all the videos were stretched twice for manual processing
+
+    time_per_step = total_time / total_time_steps
+    expert_feature_expectation = expert_feature_expectation/n_files_read
+    logging.info("Total files read: %d", n_files_read)
+    np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
+    logging.info("mu_e = %s", pformat(expert_feature_expectation))
+    logging.info("Total number of expert visited states: %d", len(expert_visited_states_set))
+
+    logging.info("Seconds per time step: %f", round(time_per_step, 2))
+
+    return expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step
 
 
 #def write_task_data():
