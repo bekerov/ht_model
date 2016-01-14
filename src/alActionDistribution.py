@@ -88,8 +88,30 @@ def numpyfy_state_action_dict(state_action_dict):
 
     return state_action_narray
 
-def q_learning():
-    pass
+def q_learning(agent_state_action_distribution_dict, agent_rewards, task_state_action_narray, task_start_state_set, n_episodes = 1):
+    r1_state_action_distribution_dict = agent_state_action_distribution_dict[0]
+    r2_state_action_distribution_dict = agent_state_action_distribution_dict[1]
+    r1_reward = agent_rewards[0]
+    r2_reward = agent_rewards[1]
+    alpha = 0.2
+    gamma = 1.0
+
+    for episode in range(n_episodes):
+        start_state = random.choice(tuple(task_start_state_set))
+        r1_state_tup = start_state
+        r2_state_tup = start_state
+        while True:
+            r1_action = sf.select_random_action(r1_state_action_distribution_dict[r1_state_tup])
+            r2_action = sf.select_random_action(r2_state_action_distribution_dict[r2_state_tup])
+
+            if r1_action == 'X' and r2_action == 'X':
+                break
+
+            r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+            r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
+
+            r1_state_tup = r1_state_prime_tup
+            r2_state_tup = r2_state_prime_tup
 
 def main():
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
@@ -100,7 +122,6 @@ def main():
     feature_matrix = task_params[ts.TaskParams.feature_matrix]
     expert_feature_expectation = task_params[ts.TaskParams.expert_feature_expectation]
     task_states_narray = task_params[ts.TaskParams.task_states_narray]
-    task_state_action_narray = task_params[ts.TaskParams.task_state_action_narray]
     n_trials = task_params[ts.TaskParams.n_trials]
 
     # normalizing expert feature expection to bind the first norm of rewards and w within 1
@@ -118,17 +139,19 @@ def main():
     w_r2 = (mu_e_normalized - mu_bar_curr_r2)
     t_r1 = np.linalg.norm(w_r1)
     t_r2 = np.linalg.norm(w_r2)
-    reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
-    reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
+    r1_reward = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
+    r2_reward = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
 
     mu_bar_prev_r1 = mu_bar_curr_r1
     mu_bar_prev_r2 = mu_bar_curr_r2
 
-    r1_state_action_dist = numpyfy_state_action_dict(r1_state_action_distribution_dict)
-    r2_state_action_dist = numpyfy_state_action_dict(r2_state_action_distribution_dict)
+    #r1_state_action_distribution_narray = numpyfy_state_action_dict(r1_state_action_distribution_dict)
+    #r2_state_action_distribution_narray = numpyfy_state_action_dict(r2_state_action_distribution_dict)
 
-    print r1_state_action_dist.shape, r1_state_action_dist.size
-    #q_learning(pi_r1, reward_r1, pi_r2, reward_r2)
+    agent_state_action_distribution_dict = [r1_state_action_distribution_dict, r2_state_action_distribution_dict]
+    agent_rewards = [r1_reward, r2_reward]
+
+    q_learning(agent_state_action_distribution_dict, agent_rewards, task_states_narray, task_start_state_set)
 
     #while True:
         #print "Iteration: ", i
@@ -142,11 +165,11 @@ def main():
         #mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
         #mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
 
-        #rstate_idx = random.randrange(0, len(task_states_narray))
+        #rstate_idx = random.randrange(0, len(task_states_set))
         #print "mu_bar_curr_r1 = ", mu_bar_curr_r1
         #print "mu_bar_curr_r2 = ", mu_bar_curr_r2
-        #print "reward_r1[", rstate_idx, "] = ", reward_r1[rstate_idx]
-        #print "reward_r2[", rstate_idx, "] = ", reward_r2[rstate_idx]
+        #print "r1_reward[", rstate_idx, "] = ", r1_reward[rstate_idx]
+        #print "r2_reward[", rstate_idx, "] = ", r2_reward[rstate_idx]
         #print "t_r1 = ", np.round(t_r1, 3)
         #print "t_r2 = ", np.round(t_r2, 3)
 
@@ -155,8 +178,8 @@ def main():
         #w_r2 = (mu_e_normalized - mu_bar_curr_r2)
         #t_r1 = np.linalg.norm(w_r1)
         #t_r2 = np.linalg.norm(w_r2)
-        #reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
-        #reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
+        #r1_reward = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
+        #r2_reward = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
 
         #i = i + 1
         #mu_bar_prev_r1 = mu_bar_curr_r1
@@ -169,7 +192,7 @@ def main():
         #print "**********************************************************"
 
 
-#def q_learning(pi_r1, reward_r1, pi_r2, reward_r2):
+#def q_learning(pi_r1, r1_reward, pi_r2, r2_reward):
     #q_r1 = init_random_policy(False)
     #q_r2 = init_random_policy(False)
     #states = {v: k for k, v in task_states.items()}
@@ -190,9 +213,9 @@ def main():
             #state_r2_prime, state_r1_prime = sf.simulate_next_state(action_r2, state_r2_prime, state_r1_prime) # second agent acting
 
             ## Update q for first agent
-            #q_r1[state_r1][action_r1] = q_r1[state_r1][action_r1] + alpha * (reward_r1[states[state_r1]][actions.index(action_r1)] + gamma * max(q_r1[state_r1_prime].values()) - q_r1[state_r1][action_r1])
+            #q_r1[state_r1][action_r1] = q_r1[state_r1][action_r1] + alpha * (r1_reward[states[state_r1]][actions.index(action_r1)] + gamma * max(q_r1[state_r1_prime].values()) - q_r1[state_r1][action_r1])
             ## Update q for second agent
-            #q_r2[state_r2][action_r2] = q_r2[state_r2][action_r2] + alpha * (reward_r2[states[state_r2]][actions.index(action_r2)] + gamma * max(q_r2[state_r2_prime].values()) - q_r2[state_r2][action_r2])
+            #q_r2[state_r2][action_r2] = q_r2[state_r2][action_r2] + alpha * (r2_reward[states[state_r2]][actions.index(action_r2)] + gamma * max(q_r2[state_r2_prime].values()) - q_r2[state_r2][action_r2])
 
             #state_r1 = state_r1_prime
             #state_r2 = state_r2_prime
