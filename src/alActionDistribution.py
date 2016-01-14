@@ -31,25 +31,28 @@ for state_idx, task_state_tup in enumerate(task_states_list):
     state_space[state_idx] = np.array(task_state_tup)
 
 # get numpy value matrix of state action space
-# value is 0 for valid actions and -inf for invalid actions from given state
+# 1 for valid actions and 0 for invalid actions from given state
 state_action_space = np.zeros((n_states, ts.n_action_vars))
-state_action_space[:] = -np.inf
+#state_action_space[:] = -np.inf
 for state_idx, task_state_tup in enumerate(task_states_list):
     actions = task_state_action_dict[task_state_tup]
     for a in actions:
         action_idx = ts.task_actions_dict[a][0]
-        state_action_space[state_idx][action_idx] = 0
+        #state_action_space[state_idx][action_idx] = 0
+        state_action_space[state_idx][action_idx] = 1
 
 # Q-Learning parameters
 alpha = 0.2
 gamma = 1.0
 
+def compute_random_state_action_distribution():
+    random_state_action_dist = np.random.rand(n_states, ts.n_action_vars)
+    random_state_action_dist[state_action_space == 0] = 0
+    random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1))
+    return random_state_action_dist
+
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    print task_states_list[10]
-    print state_space[10]
-    print task_state_action_dict[task_states_list[10]]
-    print state_action_space[10]
 
 if __name__=='__main__':
     main()
