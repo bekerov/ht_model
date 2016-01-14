@@ -8,6 +8,9 @@ import numpy as np
 import taskSetup as ts
 import simulationFunctions as sf
 
+alpha = 0.2
+gamma = 1.0
+
 def compute_random_state_action_distribution_dict(task_state_action_dict):
     """Function to compute a random distribution for actions for each task state
     """
@@ -69,7 +72,7 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
     return mu_bar_curr
 
-def numpyfy_state_action_dict(state_action_dict):
+def dict_to_narray(state_action_dict):
     state_action_narray = np.empty((0, ts.n_action_vars))
     for task_state_tup, action_dict in state_action_dict.items():
         # get the indices of the valid actions for the task_state_tup from state_action_dict
@@ -88,13 +91,24 @@ def numpyfy_state_action_dict(state_action_dict):
 
     return state_action_narray
 
-def q_learning(agent_state_action_distribution_dict, agent_rewards, task_state_action_narray, task_start_state_set, n_episodes = 1):
+def get_state_action_index(state_prime_tup, agent_action, task_states_narray):
+    state_idx = np.where((task_states_narray==state_prime_tup).all(axis=1))[0][0]
+    action_idx = ts.task_actions_dict[agent_action][0]
+    return state_idx, action_idx
+
+def update_q(q_vector, reward_vector):
+    q_vector = q_vector + alpha * (reward_vector + gamma * q_vector[q_vector.argmax()] - q_vector)
+    return q_vector
+
+
+def q_learning(agent_state_action_distribution_dict, agent_rewards, task_states_narray, task_start_state_set, n_episodes = 1):
     r1_state_action_distribution_dict = agent_state_action_distribution_dict[0]
     r2_state_action_distribution_dict = agent_state_action_distribution_dict[1]
     r1_reward = agent_rewards[0]
     r2_reward = agent_rewards[1]
-    alpha = 0.2
-    gamma = 1.0
+
+    q_r1 = np.zeros((len(task_states_narray), ts.n_action_vars))
+    q_r2 = np.zeros((len(task_states_narray), ts.n_action_vars))
 
     for episode in range(n_episodes):
         start_state = random.choice(tuple(task_start_state_set))
@@ -109,6 +123,14 @@ def q_learning(agent_state_action_distribution_dict, agent_rewards, task_state_a
 
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
             r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
+
+            #q_r1 = update_q(q_r1, r1_reward, r1_state_prime_tup, r1_action, task_states_narray)
+
+            state_idx, action_idx = get_state_action_index(r1_state_prime_tup, r1_action, task_states_narray)
+            q_r1[state_idx] = update_q(q_r1[state_idx], r1_reward[state_idx])
+            print q_r1[(state_idx, action_idx)]
+
+            #q_r1[state_action_idx] = q_r1[state_action_idx] + alpha * (r1_reward[state_action_idx] + gamma * q_r1[np.unravel_index(q_r1.argmax(), q_r1.shape)] - q_r1[state_action_idx])
 
             r1_state_tup = r1_state_prime_tup
             r2_state_tup = r2_state_prime_tup
@@ -145,8 +167,8 @@ def main():
     mu_bar_prev_r1 = mu_bar_curr_r1
     mu_bar_prev_r2 = mu_bar_curr_r2
 
-    #r1_state_action_distribution_narray = numpyfy_state_action_dict(r1_state_action_distribution_dict)
-    #r2_state_action_distribution_narray = numpyfy_state_action_dict(r2_state_action_distribution_dict)
+    #r1_state_action_distribution_narray = dict_to_narray(r1_state_action_distribution_dict)
+    #r2_state_action_distribution_narray = dict_to_narray(r2_state_action_distribution_dict)
 
     agent_state_action_distribution_dict = [r1_state_action_distribution_dict, r2_state_action_distribution_dict]
     agent_rewards = [r1_reward, r2_reward]
