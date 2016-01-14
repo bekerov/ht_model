@@ -22,7 +22,7 @@ def compute_random_state_action_distribution_dict(task_states_set, task_state_ac
         actions_dict = task_state_action_dict[task_state_tup]
         for action in actions_dict:
             random_actions[action] = random.random()
-        random_actions = {k: float(v)/total for total in (sum(random_actions.values()),) for k, v in random_actions.items()}
+        random_actions = {k: round(float(v)/total, 3) for total in (sum(random_actions.values()),) for k, v in random_actions.items()}
         random_state_action_distribution_dict[task_state_tup] = random_actions
 
     return random_state_action_distribution_dict
@@ -112,9 +112,9 @@ def narray_to_dict(task_state_action_narray, task_states_narray):
         action_indices = np.where(state_action_vector != -np.inf)[0]
         for action_index in action_indices:
             dict_key = inv_map[action_index]
-            dict_val = state_action_vector[action_index]
+            dict_val = round(state_action_vector[action_index], 3)
             action_dict[dict_key] = dict_val
-        task_state = ts.State(*list(task_states_narray[i]))
+        task_state = ts.State(*list(task_states_narray[i].astype(int)))
         i = i + 1
         state_action_distribution_dict[task_state] = action_dict
 
@@ -225,8 +225,12 @@ def main():
     my_mat = dict_to_narray(my_dict)
     my_mat[my_mat == 0] = -np.inf
     new_dict = narray_to_dict(my_mat, task_states_narray)
-    print my_dict.itervalues().next()
-    print new_dict.itervalues().next()
+    # print new_dict == my_dict
+    for (k1, v1), (k2, v2) in zip(my_dict.items(), new_dict.items()):
+        print "*************************************"
+        print "my_dict: ", k1, v1
+        print "ne_dict: ", k2, v2
+        print "*************************************"
 
     #while True:
         #print "Iteration: ", i
