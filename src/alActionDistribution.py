@@ -31,28 +31,42 @@ for state_idx, task_state_tup in enumerate(task_states_list):
     state_space[state_idx] = np.array(task_state_tup)
 
 # get numpy value matrix of state action space
-# 1 for valid actions and 0 for invalid actions from given state
+# 0 for valid actions and -inf for invalid actions from given state
 state_action_space = np.zeros((n_states, ts.n_action_vars))
-#state_action_space[:] = -np.inf
+state_action_space[:] = -np.inf
 for state_idx, task_state_tup in enumerate(task_states_list):
-    actions = task_state_action_dict[task_state_tup]
-    for a in actions:
-        action_idx = ts.task_actions_dict[a][0]
-        #state_action_space[state_idx][action_idx] = 0
-        state_action_space[state_idx][action_idx] = 1
+    action_idx = [ts.task_actions_dict[_][0] for _ in task_state_action_dict[task_state_tup]]
+    np.put(state_action_space[state_idx], action_idx, 0)
 
 # Q-Learning parameters
 alpha = 0.2
 gamma = 1.0
 
 def compute_random_state_action_distribution():
+    """Function to compute a random state action distribution
+    """
     random_state_action_dist = np.random.rand(n_states, ts.n_action_vars)
-    random_state_action_dist[state_action_space == 0] = 0
-    random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1))
+    random_state_action_dist[state_action_space == -np.inf] = 0
+    random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1)) # normalize each row
+
     return random_state_action_dist
+
+def extract_policy(q_state_action_matrix):
+    """Function to extract the policy from q_value matrix
+    """
+    policy = dict()
+    action_keys = {v[0]: k for k, v in ts.task_actions_dict.items()}
+    for state_idx, task_state_tup in enumerate(task_states_list):
+        action_idx = np.argmax(q_state_action_matrix[state_idx])
+        policy[task_state_tup] = action_keys[action_idx]
+
+    return policy
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
+    policy = extract_policy(compute_random_state_action_distribution())
+
+    pprint.pprint(policy)
 
 if __name__=='__main__':
     main()
