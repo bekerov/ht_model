@@ -255,17 +255,25 @@ def numpyfy_task_states_set(task_states_set):
 
     return task_states_narray
 
-def numpyfy_task_state_action_dict(task_state_action_dict):
+def numpyfy_task_state_action_dict(task_states_set):
     """Wrapper function to convert non numpy struct dict into numpy narray for computation
     """
     task_state_action_narray = np.empty((0, n_action_vars))
-    for task_state_tup, _ in task_state_action_dict.items():
+    for task_state_tup in task_states_set:
         # get the indices of the valid actions for the task_state from task_actions_dict
+        a = get_valid_actions(task_state_tup)
         action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
 
         # create a row for the current task_state
         current_task_state_vector = np.zeros(n_action_vars)
-        np.put(current_task_state_vector, action_idx, 1)
+        current_task_state_vector[:] = -np.inf
+        np.put(current_task_state_vector, action_idx, 0)
+        print "*************************************"
+        print task_state_tup
+        print a
+        print action_idx
+        print current_task_state_vector
+        print "*************************************"
 
         # add the row to the matrix
         task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
@@ -278,7 +286,7 @@ def write_task_parameters():
     task_states_set, task_start_state_set = generate_task_state_set()
     task_state_action_dict = generate_task_state_action_dict(task_states_set)
     task_states_narray = numpyfy_task_states_set(task_states_set)
-    task_state_action_narray = numpyfy_task_state_action_dict(task_state_action_dict)
+    task_state_action_narray = numpyfy_task_state_action_dict(task_states_set)
 
     feature_matrix = generate_feature_matrix(task_states_set)
     expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
