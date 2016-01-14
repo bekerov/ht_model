@@ -11,7 +11,18 @@ import simulationFunctions as sf
    state.
 """
 
-def compute_expert_state_action_distribution_dict(task_state_action_dict, expert_state_action_dict):
+# load task params from pickle file
+task_params = ts.load_task_parameters()
+task_states_set = task_params[ts.TaskParams.task_states_set]
+task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
+task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
+feature_matrix = task_params[ts.TaskParams.feature_matrix]
+expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
+expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
+n_episodes = task_params[ts.TaskParams.n_episodes]
+time_per_step = task_params[ts.TaskParams.time_per_step]
+
+def compute_expert_state_action_distribution_dict():
     """Function to compute expert Q value based on the processed video files.
        Note: It is likely that the experts don't visit all the possible states in the state space, thus for states not visited by experts we assign an action based on a uniform distribution for that state. For states visited by experts, assign values for actions based on their frequency.
     """
@@ -33,14 +44,8 @@ def compute_expert_state_action_distribution_dict(task_state_action_dict, expert
 
 def simulate_expert_state_action_distribution_dict():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
-    task_params = ts.load_task_parameters()
-    task_states_set = task_params[ts.TaskParams.task_states_set]
-    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
-    task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
-    expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
-    expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-    r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict(task_state_action_dict, expert_state_action_dict)
-    r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict(task_state_action_dict, expert_state_action_dict)
+    r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
+    r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
     print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, random.choice(tuple(task_start_state_set)))
 
 if __name__=='__main__':

@@ -12,19 +12,26 @@ import expertActionDistribution
 import taskSetup as ts
 import simulationFunctions as sf
 
+# load task params from pickle file
+task_params = ts.load_task_parameters()
+task_states_set = task_params[ts.TaskParams.task_states_set]
+task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
+task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
+feature_matrix = task_params[ts.TaskParams.feature_matrix]
+expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
+expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
+n_episodes = task_params[ts.TaskParams.n_episodes]
+time_per_step = task_params[ts.TaskParams.time_per_step]
+
 if __name__=='__main__':
     logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
-    task_params = ts.load_task_parameters()
-    task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
-    task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
-    expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
     for i in range(n_trials):
         start_state = random.choice(tuple(task_start_state_set))
-        expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict(task_state_action_dict, expert_state_action_dict)
-        random_state_action_distribution_dict = alActionDistribution.compute_random_state_action_distribution_dict(task_state_action_dict)
+        expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
+        random_state_action_distribution_dict = alActionDistribution.compute_random_state_action_distribution_dict()
         n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
         n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
     print "Number of trials = ", n_trials
