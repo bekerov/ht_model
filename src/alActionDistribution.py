@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(mes
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
-task_states_dict = task_params[ts.TaskParams.task_states_dict]
+task_states_list = task_params[ts.TaskParams.task_states_list]
 task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
 task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
@@ -23,7 +23,7 @@ n_episodes = task_params[ts.TaskParams.n_episodes]
 time_per_step = task_params[ts.TaskParams.time_per_step]
 
 # number of states in task
-n_states = len(task_states_dict)
+n_states = len(task_states_list)
 
 # Q-Learning parameters
 alpha = 0.2

@@ -8,12 +8,12 @@ import simulationFunctions as sf
 
 """This module creates an random action distribution for the box color sort task.
 """
-# set logging level
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s-%(levelname)s: %(message)s')
+# set logging level, change to DEBUG for colored output
+logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
-task_states_dict = task_params[ts.TaskParams.task_states_dict]
+task_states_list = task_params[ts.TaskParams.task_states_list]
 task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
 task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
@@ -26,9 +26,8 @@ def compute_random_state_action_distribution_dict():
     """Function to compute a random distribution for actions for each task state
     """
     random_state_action_distribution_dict = dict()
-    for task_state_tup in task_states_dict.values():
+    for task_state_tup, actions_dict in task_state_action_dict.items():
         random_actions = dict()
-        actions_dict = task_state_action_dict[task_state_tup]
         for action in actions_dict:
             random_actions[action] = random.random()
         random_actions = {k: float(v)/total for total in (sum(random_actions.values()),) for k, v in random_actions.items()}

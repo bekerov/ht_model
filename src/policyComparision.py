@@ -13,11 +13,11 @@ import taskSetup as ts
 import simulationFunctions as sf
 
 # set logging level
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
-task_states_dict = task_params[ts.TaskParams.task_states_dict]
+task_states_list = task_params[ts.TaskParams.task_states_list]
 task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
 task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
