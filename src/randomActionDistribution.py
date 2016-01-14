@@ -11,7 +11,7 @@ import simulationFunctions as sf
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
-task_states_set = task_params[ts.TaskParams.task_states_set]
+task_states_dict = task_params[ts.TaskParams.task_states_dict]
 task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
 task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
@@ -24,7 +24,7 @@ def compute_random_state_action_distribution_dict():
     """Function to compute a random distribution for actions for each task state
     """
     random_state_action_distribution_dict = dict()
-    for task_state_tup in task_states_set:
+    for task_state_tup in task_states_dict.values():
         random_actions = dict()
         actions_dict = task_state_action_dict[task_state_tup]
         for action in actions_dict:
