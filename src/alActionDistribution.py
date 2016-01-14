@@ -88,12 +88,12 @@ def dict_to_narray(state_action_dict):
         # add the row to the matrix
         state_action_narray = np.vstack((state_action_narray, current_task_vector))
 
-        print "****************************************"
-        print task_state_tup
-        print action_dict
-        print action_idx
-        print current_task_vector
-        print "****************************************"
+        # print "****************************************"
+        # print task_state_tup
+        # print action_dict
+        # print action_idx
+        # print current_task_vector
+        # print "****************************************"
 
     return state_action_narray
 
@@ -102,9 +102,24 @@ def get_state_action_index(state_prime_tup, agent_action, task_states_narray):
     action_idx = ts.task_actions_dict[agent_action][0]
     return state_idx, action_idx
 
-def update_q(q_vector, reward_vector):
-    q_vector = q_vector + alpha * (reward_vector + gamma * q_vector[q_vector.argmax()] - q_vector)
-    return q_vector
+def narray_to_dict(task_state_action_narray, task_states_narray):
+    state_action_distribution_dict = dict()
+    inv_map = {v[0]: k for k, v in ts.task_actions_dict.items()}
+    i = 0
+    for state_action_vector in task_state_action_narray:
+        action_dict = dict()
+        # print state_action_vector
+        action_indices = np.where(state_action_vector != -np.inf)[0]
+        for action_index in action_indices:
+            dict_key = inv_map[action_index]
+            dict_val = state_action_vector[action_index]
+            action_dict[dict_key] = dict_val
+        task_state = ts.State(*list(task_states_narray[i]))
+        i = i + 1
+        state_action_distribution_dict[task_state] = action_dict
+
+    # pprint.pprint(state_action_distribution_dict)
+    return state_action_distribution_dict
 
 def q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifics, n_episodes = 1):
     r1_state_action_distribution_dict = agent_state_action_distribution_dict[0]
@@ -138,30 +153,32 @@ def q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifi
             state_idx, action_idx = get_state_action_index(r1_state_tup, r1_action, task_states_narray)
             state_prime_idx, action_prime_idx = get_state_action_index(r1_state_prime_tup, r1_action, task_states_narray)
 
-            print r1_state_tup
-            print r1_state_action_distribution_dict[r1_state_tup]
-            print r1_state_prime_tup
-            print task_states_narray[state_idx]
-            print r1_action
-            print state_idx, action_idx
-            print "q before update"
-            print q_r1[state_idx]
-            print q_r1[state_idx][action_idx]
+            # print r1_state_tup
+            # print r1_state_action_distribution_dict[r1_state_tup]
+            # print r1_state_prime_tup
+            # print task_states_narray[state_idx]
+            # print r1_action
+            # print state_idx, action_idx
+            # print "q before update"
+            # print q_r1[state_idx]
+            # print q_r1[state_idx][action_idx]
 
             q_r1[state_idx][action_idx] = q_r1[state_idx][action_idx] + alpha * (r1_reward[state_idx][action_idx] + gamma * q_r1[state_prime_idx][q_r1[state_prime_idx].argmax()] - q_r1[state_idx][action_idx])
 
-            print "q after update"
-            print q_r1[state_idx]
-            print q_r1[state_idx][action_idx]
+            # print "q after update"
+            # print q_r1[state_idx]
+            # print q_r1[state_idx][action_idx]
 
             r1_state_tup = r1_state_prime_tup
             r2_state_tup = r2_state_prime_tup
 
-            print "**********************************************************"
-            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            if user_input.upper() == 'Q':
-               break;
-            print "**********************************************************"
+            # print "**********************************************************"
+            # user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            # if user_input.upper() == 'Q':
+               # break;
+            # print "**********************************************************"
+
+    narray_to_dict(q_r1, task_states_narray)
 
 def main():
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
@@ -203,7 +220,13 @@ def main():
 
     # dict_to_narray(r1_state_action_distribution_dict)
 
-    q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifics)
+    # q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifics)
+    my_dict = compute_random_state_action_distribution_dict(task_states_set, task_state_action_dict)
+    my_mat = dict_to_narray(my_dict)
+    my_mat[my_mat == 0] = -np.inf
+    new_dict = narray_to_dict(my_mat, task_states_narray)
+    print my_dict.itervalues().next()
+    print new_dict.itervalues().next()
 
     #while True:
         #print "Iteration: ", i
