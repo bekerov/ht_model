@@ -103,7 +103,6 @@ def generate_task_state_set():
         task_state_tup = State(*vector)
         if is_valid_task_state(task_state_tup):
             # only add if task_state_tup is valid
-            #task_states_set.add(task_state_tup)
             task_states_dict[idx] = task_state_tup
             idx = idx + 1
 

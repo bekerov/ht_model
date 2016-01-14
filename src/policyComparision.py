@@ -12,6 +12,9 @@ import expertActionDistribution
 import taskSetup as ts
 import simulationFunctions as sf
 
+# set logging level
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
+
 # load task params from pickle file
 task_params = ts.load_task_parameters()
 task_states_dict = task_params[ts.TaskParams.task_states_dict]
@@ -24,7 +27,6 @@ n_episodes = task_params[ts.TaskParams.n_episodes]
 time_per_step = task_params[ts.TaskParams.time_per_step]
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.ERROR, format='%(asctime)s-%(levelname)s: %(message)s')
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
