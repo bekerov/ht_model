@@ -268,12 +268,6 @@ def numpyfy_task_state_action_dict(task_states_set):
         current_task_state_vector = np.zeros(n_action_vars)
         current_task_state_vector[:] = -np.inf
         np.put(current_task_state_vector, action_idx, 0)
-        print "*************************************"
-        print task_state_tup
-        print a
-        print action_idx
-        print current_task_state_vector
-        print "*************************************"
 
         # add the row to the matrix
         task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))

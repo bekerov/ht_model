@@ -35,7 +35,6 @@ def select_random_action(state_action_distribution_dict):
       upto += probs
    assert False, "Shouldn't get here"
 
-
 def simulate_next_state(current_action, my_current_state, teammate_current_state):
     my_next_state = my_current_state
     teammate_next_state = teammate_current_state

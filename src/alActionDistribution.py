@@ -11,12 +11,15 @@ import simulationFunctions as sf
 alpha = 0.2
 gamma = 1.0
 
-def compute_random_state_action_distribution_dict(task_state_action_dict):
+# def compute_random_state_action_distribution_dict(task_state_action_dict):
+def compute_random_state_action_distribution_dict(task_states_set, task_state_action_dict):
     """Function to compute a random distribution for actions for each task state
     """
     random_state_action_distribution_dict = dict()
-    for task_state_tup, actions_dict in task_state_action_dict.items():
+    # for task_state_tup, actions_dict in task_state_action_dict.items():
+    for task_state_tup in task_states_set:
         random_actions = dict()
+        actions_dict = task_state_action_dict[task_state_tup]
         for action in actions_dict:
             random_actions[action] = random.random()
         random_actions = {k: float(v)/total for total in (sum(random_actions.values()),) for k, v in random_actions.items()}
@@ -85,9 +88,12 @@ def dict_to_narray(state_action_dict):
         # add the row to the matrix
         state_action_narray = np.vstack((state_action_narray, current_task_vector))
 
-        #print task_state_tup
-        #print action_dict
-        #print current_task_vector
+        print "****************************************"
+        print task_state_tup
+        print action_dict
+        print action_idx
+        print current_task_vector
+        print "****************************************"
 
     return state_action_narray
 
@@ -100,14 +106,20 @@ def update_q(q_vector, reward_vector):
     q_vector = q_vector + alpha * (reward_vector + gamma * q_vector[q_vector.argmax()] - q_vector)
     return q_vector
 
-def q_learning(agent_state_action_distribution_dict, agent_rewards, task_states_narray, task_start_state_set, n_episodes = 1):
+def q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifics, n_episodes = 1):
     r1_state_action_distribution_dict = agent_state_action_distribution_dict[0]
     r2_state_action_distribution_dict = agent_state_action_distribution_dict[1]
+
     r1_reward = agent_rewards[0]
     r2_reward = agent_rewards[1]
 
-    q_r1 = np.zeros((len(task_states_narray), ts.n_action_vars))
-    q_r2 = np.zeros((len(task_states_narray), ts.n_action_vars))
+    task_start_state_set = task_specifics[0]
+    task_states_narray = task_specifics[1]
+    task_state_action_narray = task_specifics[2]
+
+    # q_r1 = np.zeros((len(task_states_narray), ts.n_action_vars))
+    q_r1 = task_state_action_narray
+    q_r2 = task_state_action_narray
 
     for episode in range(n_episodes):
         start_state = random.choice(tuple(task_start_state_set))
@@ -123,14 +135,33 @@ def q_learning(agent_state_action_distribution_dict, agent_rewards, task_states_
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
             r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
 
-            state_action_action_idx = get_state_action_index(r1_state_prime_tup, r1_action, task_states_narray)
+            state_idx, action_idx = get_state_action_index(r1_state_tup, r1_action, task_states_narray)
+            state_prime_idx, action_prime_idx = get_state_action_index(r1_state_prime_tup, r1_action, task_states_narray)
 
-            # q_r1[state_action_idx] = q_r1[state_action_idx] + alpha * (r1_reward[state_action_idx] + gamma * q_r1[np.unravel_index(q_r1.)])
-            # q_r1[state_idx] = update_q(q_r1[state_idx], r1_reward[state_idx])
-            # print q_r1[(state_idx, action_idx)]
+            print r1_state_tup
+            print r1_state_action_distribution_dict[r1_state_tup]
+            print r1_state_prime_tup
+            print task_states_narray[state_idx]
+            print r1_action
+            print state_idx, action_idx
+            print "q before update"
+            print q_r1[state_idx]
+            print q_r1[state_idx][action_idx]
+
+            q_r1[state_idx][action_idx] = q_r1[state_idx][action_idx] + alpha * (r1_reward[state_idx][action_idx] + gamma * q_r1[state_prime_idx][q_r1[state_prime_idx].argmax()] - q_r1[state_idx][action_idx])
+
+            print "q after update"
+            print q_r1[state_idx]
+            print q_r1[state_idx][action_idx]
 
             r1_state_tup = r1_state_prime_tup
             r2_state_tup = r2_state_prime_tup
+
+            print "**********************************************************"
+            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            if user_input.upper() == 'Q':
+               break;
+            print "**********************************************************"
 
 def main():
     logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
@@ -141,35 +172,38 @@ def main():
     feature_matrix = task_params[ts.TaskParams.feature_matrix]
     expert_feature_expectation = task_params[ts.TaskParams.expert_feature_expectation]
     task_states_narray = task_params[ts.TaskParams.task_states_narray]
+    task_state_action_narray = task_params[ts.TaskParams.task_state_action_narray]
     task_states_set = task_params[ts.TaskParams.task_states_set]
-    ts.numpyfy_task_state_action_dict(task_states_set)
     n_trials = task_params[ts.TaskParams.n_trials]
 
     # normalizing expert feature expection to bind the first norm of rewards and w within 1
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation)
 
     # first iteration
-    # i = 1
-    # r1_state_action_distribution_dict = compute_random_state_action_distribution_dict(task_state_action_dict)
-    # r2_state_action_distribution_dict = compute_random_state_action_distribution_dict(task_state_action_dict)
-    # mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(task_start_state_set, r1_state_action_distribution_dict, r2_state_action_distribution_dict, n_trials)
-    # mu_bar_curr_r1 = mu_curr_r1
-    # mu_bar_curr_r2 = mu_curr_r2
+    i = 1
+    r1_state_action_distribution_dict = compute_random_state_action_distribution_dict(task_states_set, task_state_action_dict)
+    r2_state_action_distribution_dict = compute_random_state_action_distribution_dict(task_states_set, task_state_action_dict)
+    mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(task_start_state_set, r1_state_action_distribution_dict, r2_state_action_distribution_dict, n_trials)
+    mu_bar_curr_r1 = mu_curr_r1
+    mu_bar_curr_r2 = mu_curr_r2
 
-    # w_r1 = (mu_e_normalized - mu_bar_curr_r1)
-    # w_r2 = (mu_e_normalized - mu_bar_curr_r2)
-    # t_r1 = np.linalg.norm(w_r1)
-    # t_r2 = np.linalg.norm(w_r2)
-    # r1_reward = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
-    # r2_reward = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
+    w_r1 = (mu_e_normalized - mu_bar_curr_r1)
+    w_r2 = (mu_e_normalized - mu_bar_curr_r2)
+    t_r1 = np.linalg.norm(w_r1)
+    t_r2 = np.linalg.norm(w_r2)
+    r1_reward = np.reshape(np.dot(feature_matrix, w_r1), (len(task_states_narray), ts.n_action_vars))
+    r2_reward = np.reshape(np.dot(feature_matrix, w_r2), (len(task_states_narray), ts.n_action_vars))
 
-    # mu_bar_prev_r1 = mu_bar_curr_r1
-    # mu_bar_prev_r2 = mu_bar_curr_r2
+    mu_bar_prev_r1 = mu_bar_curr_r1
+    mu_bar_prev_r2 = mu_bar_curr_r2
 
-    # agent_state_action_distribution_dict = [r1_state_action_distribution_dict, r2_state_action_distribution_dict]
-    # agent_rewards = [r1_reward, r2_reward]
+    agent_state_action_distribution_dict = [r1_state_action_distribution_dict, r2_state_action_distribution_dict]
+    agent_rewards = [r1_reward, r2_reward]
+    task_specifics = [task_start_state_set, task_states_narray, task_state_action_narray]
 
-    # q_learning(agent_state_action_distribution_dict, agent_rewards, task_states_narray, task_start_state_set)
+    # dict_to_narray(r1_state_action_distribution_dict)
+
+    q_learning(agent_state_action_distribution_dict, agent_rewards, task_specifics)
 
     #while True:
         #print "Iteration: ", i
