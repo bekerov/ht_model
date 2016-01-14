@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
-import alActionDistribution
+import randomActionDistribution
 import expertActionDistribution
 import taskSetup as ts
 import simulationFunctions as sf
@@ -31,7 +31,7 @@ if __name__=='__main__':
     for i in range(n_trials):
         start_state = random.choice(tuple(task_start_state_set))
         expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
-        random_state_action_distribution_dict = alActionDistribution.compute_random_state_action_distribution_dict()
+        random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
         n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
         n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
     print "Number of trials = ", n_trials

@@ -58,8 +58,6 @@ class TaskParams:
     expert_feature_expectation = 6
     n_episodes = 7
     time_per_step = 8
-    #task_states_narray = 9
-    #task_state_action_narray = 10
 
 def is_valid_task_state(task_state_tup):
     """Function to check if current task is valid, if not it will be pruned
@@ -246,41 +244,11 @@ def load_experiment_data(task_states_set, task_start_state_set):
 
     return expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step
 
-#def numpyfy_task_states_set(task_states_set):
-    #"""Wrapper function to convert non numpy struct set into numpy narray for computation
-    #"""
-    #task_states_narray = np.empty((0, n_state_vars))
-    #for task_state_tup in task_states_set:
-        #task_states_narray = np.vstack((task_states_narray, task_state_tup))
-
-    #return task_states_narray
-
-#def numpyfy_task_state_action_dict(task_states_set):
-    #"""Wrapper function to convert non numpy struct dict into numpy narray for computation
-    #"""
-    #task_state_action_narray = np.empty((0, n_action_vars))
-    #for task_state_tup in task_states_set:
-        ## get the indices of the valid actions for the task_state from task_actions_dict
-        #a = get_valid_actions(task_state_tup)
-        #action_idx = [task_actions_dict[_][0] for _ in get_valid_actions(task_state_tup)]
-
-        ## create a row for the current task_state
-        #current_task_state_vector = np.zeros(n_action_vars)
-        #current_task_state_vector[:] = -np.inf
-        #np.put(current_task_state_vector, action_idx, 0)
-
-        ## add the row to the matrix
-        #task_state_action_narray = np.vstack((task_state_action_narray, current_task_state_vector))
-
-    #return task_state_action_narray
-
 def write_task_parameters():
     """Function to generate task parameters (states set, state_action dict, feature matrix), convert non numpy structs to numpy and dump to the task_parameters pickle file
     """
     task_states_set, task_start_state_set = generate_task_state_set()
     task_state_action_dict = generate_task_state_action_dict(task_states_set)
-    #task_states_narray = numpyfy_task_states_set(task_states_set)
-    #task_state_action_narray = numpyfy_task_state_action_dict(task_states_set)
 
     feature_matrix = generate_feature_matrix(task_states_set)
     expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_set, task_start_state_set)
