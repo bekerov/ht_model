@@ -78,31 +78,49 @@ def main():
     r2_state_idx = r1_state_idx
     r1_state_tup = start_state
     r2_state_tup = start_state
-    while True:
-        r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
-        r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
+    print feature_matrix.shape, feature_matrix.size
+    for state_idx, task_state_tup in enumerate(task_states_list):
+        for action_idx in ts.task_actions_index:
+            task_action = ts.task_actions_index[action_idx]
+            #print task_state_tup
+            #print task_action
+            cmpr = feature_matrix[state_idx][action_idx] == ts.get_feature_vector(task_state_tup, task_action)
+            if not np.all(cmpr):
+                print ts.get_feature_vector(task_state_tup, task_action)
+                print feature_matrix[state_idx][action_idx]
+                break
+            #print "**********************************************************"
+            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            #if user_input.upper() == 'Q':
+             #break;
+            #print "**********************************************************"
+        #if user_input.upper() == 'Q':
+         #break;
+    print "Done"
+    #while True:
+        #r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
+        #r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
 
-        print r1_action
-        print r1_state_tup
-        print r2_action
-        print r2_state_tup
+        #print r1_action
+        #print r1_state_tup
+        #print r2_action
+        #print r2_state_tup
 
-        if r1_action == 'X' and r2_action == 'X':
-            break
+        #if r1_action == 'X' and r2_action == 'X':
+            #break
 
-        r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
-        r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
+        #r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+        #r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
 
-        r1_state_idx = task_states_list.index(r1_state_tup)
-        r2_state_idx = task_states_list.index(r2_state_tup)
+        ## update the state indices for both agents
+        #r1_state_idx = task_states_list.index(r1_state_tup)
+        #r2_state_idx = task_states_list.index(r2_state_tup)
 
         #print "**********************************************************"
         #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
         #if user_input.upper() == 'Q':
          #break;
         #print "**********************************************************"
-    #for state_idx, task_state_tup in enumerate(task_states_list):
-        #print select_random_action(r1_state_action_dist[state_idx])
 
 if __name__=='__main__':
     main()
