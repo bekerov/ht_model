@@ -9,7 +9,7 @@ import taskSetup as ts
 import simulationFunctions as sf
 
 # set logging level
-logging.basicConfig(level=logging.WARN, format='%(asctime)s-%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
@@ -19,6 +19,7 @@ task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
 expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
 expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
+expert_feature_expectation = task_params[ts.TaskParams.expert_feature_expectation]
 n_experiments = task_params[ts.TaskParams.n_experiments]
 time_per_step = task_params[ts.TaskParams.time_per_step]
 
@@ -66,6 +67,7 @@ def select_random_action(state_action_vector):
     """
     action_idx = np.random.choice(np.arange(state_action_vector.size), p = state_action_vector)
     action = ts.task_actions_index[action_idx]
+
     return action
 
 def get_feature_idx(state_idx, action_idx):
@@ -103,18 +105,60 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
 
     r1_feature_expectation = r1_feature_expectation/n_experiments
     r2_feature_expectation = r2_feature_expectation/n_experiments
+
     return r1_feature_expectation/np.linalg.norm(r1_feature_expectation), r2_feature_expectation/np.linalg.norm(r2_feature_expectation)
+
+def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
+    x = mu_curr - mu_bar_prev
+    y = mu_e - mu_bar_prev
+    mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
+
+    return mu_bar_curr
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
+    mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation)
 
-    r1_state_action_dist = compute_random_state_action_distribution()
-    r2_state_action_dist = compute_random_state_action_distribution()
+    i = 1
+    while True:
+        print "Iteration: ", i
+        r1_state_action_dist = compute_random_state_action_distribution()
+        r2_state_action_dist = compute_random_state_action_distribution()
 
-    r1_feature_expectation, r2_feature_expectation = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
+        mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
-    print r1_feature_expectation
-    print r2_feature_expectation
+
+        if i == 1:
+            mu_bar_curr_r1 = mu_curr_r1
+            mu_bar_curr_r2 = mu_curr_r2
+        else:
+            mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
+            mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
+
+        print "mu_curr_r1 = ", mu_curr_r1, "\n"
+        print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
+        print "mu_curr_r2 = ", mu_curr_r2, "\n"
+        print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
+
+        # update the weights
+        w_r1 = mu_e_normalized - mu_curr_r1
+        w_r2 = mu_e_normalized - mu_curr_r2
+
+        t_r1 = np.linalg.norm(w_r1)
+        t_r2 = np.linalg.norm(w_r2)
+
+        reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (n_states, ts.n_action_vars))
+        reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (n_states, ts.n_action_vars))
+
+        i = i + 1
+        mu_bar_prev_r1 = mu_bar_curr_r1
+        mu_bar_prev_r2 = mu_bar_curr_r2
+
+        print "**********************************************************"
+        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+        if user_input.upper() == 'Q':
+           break;
+        print "**********************************************************"
 
 if __name__=='__main__':
     main()
