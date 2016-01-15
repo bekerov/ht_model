@@ -89,15 +89,21 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
         while True:
             r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
             r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
+            r1_action_idx = ts.task_actions_expl[r1_action][0]
+            r2_action_idx = ts.task_actions_expl[r2_action][0]
 
             if r1_action == 'X' and r2_action == 'X':
                 break
 
-            r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
-            r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
+            r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+            r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
 
-            r1_feature_expectation = r1_feature_expectation + feature_matrix[get_feature_idx(r1_state_idx, ts.task_actions_expl[r1_action][0])]
-            r2_feature_expectation = r2_feature_expectation + feature_matrix[get_feature_idx(r2_state_idx, ts.task_actions_expl[r2_action][0])]
+            r1_feature_expectation = r1_feature_expectation + feature_matrix[get_feature_idx(r1_state_idx, r1_action_idx)]
+            r2_feature_expectation = r2_feature_expectation + feature_matrix[get_feature_idx(r2_state_idx, r2_action_idx)]
+
+            # update current states to new states
+            r1_state_tup = r1_state_prime_tup
+            r2_state_tup = r2_state_prime_tup
 
             # update the state indices for both agents
             r1_state_idx = task_states_list.index(r1_state_tup)
@@ -123,20 +129,51 @@ def main():
 
     r1_state_action_dist = compute_random_state_action_distribution()
     r2_state_action_dist = compute_random_state_action_distribution()
+
     mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
     mu_bar_curr_r1 = mu_curr_r1
     mu_bar_curr_r2 = mu_curr_r2
 
     # update the weights
-    w_r1 = mu_e_normalized - mu_curr_r1
-    w_r2 = mu_e_normalized - mu_curr_r2
-    t_r1 = np.linalg.norm(w_r1)
-    t_r2 = np.linalg.norm(w_r2)
+    r1_w = mu_e_normalized - mu_curr_r1
+    r2_w = mu_e_normalized - mu_curr_r2
+    r1_t = np.linalg.norm(r1_w)
+    r2_t = np.linalg.norm(r2_w)
 
-    reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (n_states, ts.n_action_vars))
-    reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (n_states, ts.n_action_vars))
+    r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
+    r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
     n_episodes = 1
+
+    r1_q = np.zeros((n_states, ts.n_action_vars))
+    r2_q = np.zeros((n_states, ts.n_action_vars))
+
+    for episode in range(n_episodes):
+        start_state = random.choice(task_start_state_set)
+        r1_state_idx = task_states_list.index(start_state)
+        r2_state_idx = r1_state_idx
+        r1_state_tup = start_state
+        r2_state_tup = start_state
+
+        while True:
+            r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
+            r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
+            r1_action_idx = ts.task_actions_expl[r1_action][0]
+            r2_action_idx = ts.task_actions_expl[r2_action][0]
+
+            if r1_action == 'X' and r2_action == 'X':
+                break
+
+            r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+            r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
+
+            # update current states to new states
+            r1_state_tup = r1_state_prime_tup
+            r2_state_tup = r2_state_prime_tup
+
+            # update the state indices for both agents
+            r1_state_idx = task_states_list.index(r1_state_tup)
+            r2_state_idx = task_states_list.index(r2_state_tup)
 
     #i = 1
     #while True:
@@ -160,17 +197,17 @@ def main():
         #print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
 
         ## update the weights
-        #w_r1 = mu_e_normalized - mu_curr_r1
-        #w_r2 = mu_e_normalized - mu_curr_r2
+        #r1_w = mu_e_normalized - mu_curr_r1
+        #r2_w = mu_e_normalized - mu_curr_r2
 
-        #t_r1 = np.linalg.norm(w_r1)
-        #t_r2 = np.linalg.norm(w_r2)
+        #r1_t = np.linalg.norm(r1_w)
+        #r2_t = np.linalg.norm(r2_w)
 
-        #print "t_r1 = ", t_r1, "\n"
-        #print "t_r2 = ", t_r2, "\n"
+        #print "r1_t = ", r1_t, "\n"
+        #print "r2_t = ", r2_t, "\n"
 
-        #reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (n_states, ts.n_action_vars))
-        #reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (n_states, ts.n_action_vars))
+        #r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
+        #r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
         #i = i + 1
         #mu_bar_prev_r1 = mu_bar_curr_r1
