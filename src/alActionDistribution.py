@@ -19,7 +19,7 @@ task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
 expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
 expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-n_episodes = task_params[ts.TaskParams.n_episodes]
+n_experiments = task_params[ts.TaskParams.n_experiments]
 time_per_step = task_params[ts.TaskParams.time_per_step]
 
 # number of states in task
@@ -61,14 +61,48 @@ def extract_policy(q_state_action_matrix):
 
     return policy
 
+def select_random_action(state_action_vector):
+    """Function to select a random action based on the its probability in the state action distribution
+    """
+    action_idx = np.random.choice(np.arange(state_action_vector.size), p = state_action_vector)
+    action = ts.task_actions_index[action_idx]
+    return action
+
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
 
     r1_state_action_dist = compute_random_state_action_distribution()
-    pprint.pprint(extract_policy(r1_state_action_dist))
-    for state_idx, task_state_tup in enumerate(task_states_list):
-        action_idx = np.random.choice(np.arange(r1_state_action_dist[state_idx].size), p = r1_state_action_dist[state_idx])
-        print ts.task_actions_index[action_idx]
+    r2_state_action_dist = compute_random_state_action_distribution()
+    start_state = random.choice(task_start_state_set)
+    r1_state_idx = task_states_list.index(start_state)
+    r2_state_idx = r1_state_idx
+    r1_state_tup = start_state
+    r2_state_tup = start_state
+    while True:
+        r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
+        r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
+
+        print r1_action
+        print r1_state_tup
+        print r2_action
+        print r2_state_tup
+
+        if r1_action == 'X' and r2_action == 'X':
+            break
+
+        r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+        r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
+
+        r1_state_idx = task_states_list.index(r1_state_tup)
+        r2_state_idx = task_states_list.index(r2_state_tup)
+
+        #print "**********************************************************"
+        #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+        #if user_input.upper() == 'Q':
+         #break;
+        #print "**********************************************************"
+    #for state_idx, task_state_tup in enumerate(task_states_list):
+        #print select_random_action(r1_state_action_dist[state_idx])
 
 if __name__=='__main__':
     main()

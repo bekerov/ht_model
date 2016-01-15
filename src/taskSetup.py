@@ -58,7 +58,7 @@ class TaskParams:
     expert_visited_states_set = 4
     expert_state_action_dict = 5
     expert_feature_expectation = 6
-    n_episodes = 7
+    n_experiments = 7
     time_per_step = 8
 
 def is_valid_task_state(task_state_tup):
