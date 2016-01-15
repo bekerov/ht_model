@@ -82,20 +82,11 @@ def main():
     for state_idx, task_state_tup in enumerate(task_states_list):
         for action_idx in ts.task_actions_index:
             task_action = ts.task_actions_index[action_idx]
-            #print task_state_tup
-            #print task_action
             cmpr = feature_matrix[state_idx][action_idx] == ts.get_feature_vector(task_state_tup, task_action)
             if not np.all(cmpr):
                 print ts.get_feature_vector(task_state_tup, task_action)
                 print feature_matrix[state_idx][action_idx]
                 break
-            #print "**********************************************************"
-            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            #if user_input.upper() == 'Q':
-             #break;
-            #print "**********************************************************"
-        #if user_input.upper() == 'Q':
-         #break;
     print "Done"
     #while True:
         #r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
