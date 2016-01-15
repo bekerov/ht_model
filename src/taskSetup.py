@@ -171,12 +171,18 @@ def generate_feature_matrix(task_states_list):
     """ Function to generate the feature matrix, that includes features matching the state
         and actions.
     """
-    feature_matrix = np.zeros((len(task_states_list), n_action_vars, (n_state_vars + n_action_vars)))
+    #feature_matrix = np.zeros((len(task_states_list), n_action_vars, (n_state_vars + n_action_vars)))
+    #for state_idx, task_state_tup in enumerate(task_states_list):
+        #for action_idx in task_actions_index:
+            #task_action = task_actions_index[action_idx]
+            #feature_vector = get_feature_vector(task_state_tup, task_action)
+            #feature_matrix[state_idx][action_idx] = feature_vector
+    feature_matrix = np.zeros((len(task_states_list) * n_action_vars, (n_state_vars + n_action_vars)))
     for state_idx, task_state_tup in enumerate(task_states_list):
         for action_idx in task_actions_index:
             task_action = task_actions_index[action_idx]
             feature_vector = get_feature_vector(task_state_tup, task_action)
-            feature_matrix[state_idx][action_idx] = feature_vector
+            feature_matrix[state_idx * n_action_vars + action_idx] = feature_vector
     return feature_matrix
 
 def load_experiment_data(task_states_list, task_start_state_set):
