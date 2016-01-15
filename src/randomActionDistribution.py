@@ -19,7 +19,7 @@ task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
 expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
 expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-n_episodes = task_params[ts.TaskParams.n_episodes]
+n_experiments = task_params[ts.TaskParams.n_experiments]
 time_per_step = task_params[ts.TaskParams.time_per_step]
 
 def compute_random_state_action_distribution_dict():
