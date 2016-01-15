@@ -171,7 +171,7 @@ def generate_feature_matrix(task_states_list):
     """ Function to generate the feature matrix, that includes features matching the state
         and actions.
     """
-    feature_matrix = np.zeros((len(task_states_list) * n_action_vars, (n_state_vars + n_action_vars)))
+    feature_matrix = np.random.rand((len(task_states_list) * n_action_vars), (n_state_vars + n_action_vars))
     for state_idx, task_state_tup in enumerate(task_states_list):
         for action_idx in task_actions_index:
             task_action = task_actions_index[action_idx]
