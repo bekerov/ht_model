@@ -109,6 +109,8 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
     return r1_feature_expectation/np.linalg.norm(r1_feature_expectation), r2_feature_expectation/np.linalg.norm(r2_feature_expectation)
 
 def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
+    """Function to compute mu_bar_current using the forumula from Abbeel and Ng's paper page 4
+    """
     x = mu_curr - mu_bar_prev
     y = mu_e - mu_bar_prev
     mu_bar_curr = mu_bar_prev + (np.dot(x.T, y)/np.dot(x.T, x)) * x
@@ -146,6 +148,9 @@ def main():
 
         t_r1 = np.linalg.norm(w_r1)
         t_r2 = np.linalg.norm(w_r2)
+
+        print "t_r1 = ", t_r1, "\n"
+        print "t_r2 = ", t_r2, "\n"
 
         reward_r1 = np.reshape(np.dot(feature_matrix, w_r1), (n_states, ts.n_action_vars))
         reward_r2 = np.reshape(np.dot(feature_matrix, w_r2), (n_states, ts.n_action_vars))
