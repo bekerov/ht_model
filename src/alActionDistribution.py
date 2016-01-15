@@ -68,61 +68,53 @@ def select_random_action(state_action_vector):
     action = ts.task_actions_index[action_idx]
     return action
 
-def get_reshape_idx(state_idx, action_idx):
+def get_feature_idx(state_idx, action_idx):
     return (state_idx * ts.n_action_vars + action_idx)
+
+def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist):
+    """Function to compute the feature expectation of the agents by running the simulation for n_experiments. The feature expectations are normalized to bind them within 1
+    """
+    r1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+    r2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
+
+    for i in range(n_experiments):
+        start_state = random.choice(task_start_state_set)
+        r1_state_idx = task_states_list.index(start_state)
+        r2_state_idx = r1_state_idx
+        r1_state_tup = start_state
+        r2_state_tup = start_state
+
+        while True:
+            r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
+            r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
+
+            if r1_action == 'X' and r2_action == 'X':
+                break
+
+            r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+            r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
+
+            r1_feature_expectation = r1_feature_expectation + feature_matrix[get_feature_idx(r1_state_idx, ts.task_actions_expl[r1_action][0])]
+            r2_feature_expectation = r2_feature_expectation + feature_matrix[get_feature_idx(r2_state_idx, ts.task_actions_expl[r2_action][0])]
+
+            # update the state indices for both agents
+            r1_state_idx = task_states_list.index(r1_state_tup)
+            r2_state_idx = task_states_list.index(r2_state_tup)
+
+    r1_feature_expectation = r1_feature_expectation/n_experiments
+    r2_feature_expectation = r2_feature_expectation/n_experiments
+    return r1_feature_expectation/np.linalg.norm(r1_feature_expectation), r2_feature_expectation/np.linalg.norm(r2_feature_expectation)
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
 
     r1_state_action_dist = compute_random_state_action_distribution()
     r2_state_action_dist = compute_random_state_action_distribution()
-    start_state = random.choice(task_start_state_set)
-    r1_state_idx = task_states_list.index(start_state)
-    r2_state_idx = r1_state_idx
-    r1_state_tup = start_state
-    r2_state_tup = start_state
-    print feature_matrix.shape, feature_matrix.size
-    for state_idx, task_state_tup in enumerate(task_states_list):
-         for action_idx in ts.task_actions_index:
-             task_action = ts.task_actions_index[action_idx]
-             cmpr = feature_matrix[get_reshape_idx(state_idx, action_idx)] == ts.get_feature_vector(task_state_tup, task_action)
-             if not np.all(cmpr):
-                 print ts.get_feature_vector(task_state_tup, task_action)
-                 print feature_matrix[get_reshape_idx(state_idx, action_idx)]
-                 break
-    print "Done"
-    #x = np.reshape(feature_matrix, (n_states * ts.n_action_vars, ts.n_state_vars + ts.n_action_vars))
-    #print x.shape, x.size
-    # print x[0:8]
-    # print feature_matrix[0]
-    # print x[8:16] == feature_matrix[1]
-    #y = feature_matrix[50][3]
-    #z = x[get_reshape_idx(50, 3)]
-    #print y == z
-    #while True:
-        #r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
-        #r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
 
-        #print r1_action
-        #print r1_state_tup
-        #print r2_action
-        #print r2_state_tup
+    r1_feature_expectation, r2_feature_expectation = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
-        #if r1_action == 'X' and r2_action == 'X':
-            #break
-
-        #r1_state_tup, r2_state_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
-        #r2_state_tup, r1_state_tup = sf.simulate_next_state(r2_action, r2_state_tup, r1_state_tup) # second agent acting
-
-        ## update the state indices for both agents
-        #r1_state_idx = task_states_list.index(r1_state_tup)
-        #r2_state_idx = task_states_list.index(r2_state_tup)
-
-        #print "**********************************************************"
-        #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        #if user_input.upper() == 'Q':
-         #break;
-        #print "**********************************************************"
+    print r1_feature_expectation
+    print r2_feature_expectation
 
 if __name__=='__main__':
     main()
