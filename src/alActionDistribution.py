@@ -123,7 +123,12 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
 
     return mu_bar_curr
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 1):
+def softmax(w, t = 1.0):
+    e = np.exp(w / t)
+    dist = e/e.sum(axis=1).reshape((len(e), 1))
+    return dist
+
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 30):
     r1_q = np.zeros((n_states, ts.n_action_vars))
     r2_q = np.zeros((n_states, ts.n_action_vars))
 
@@ -163,9 +168,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
 
-    print r1_q
-    return r1_q, r2_q
-
+    return softmax(r1_q), softmax(r2_q)
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
@@ -175,11 +178,13 @@ def main():
     i = 1
     while True:
         print "Iteration: ", i
-        r1_state_action_dist = compute_random_state_action_distribution()
-        r2_state_action_dist = compute_random_state_action_distribution()
+        if i == 1:
+            r1_state_action_dist = compute_random_state_action_distribution()
+            r2_state_action_dist = compute_random_state_action_distribution()
+        else:
+            r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
 
         mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
-
 
         if i == 1:
             mu_bar_curr_r1 = mu_curr_r1
