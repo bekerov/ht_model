@@ -88,6 +88,11 @@ def main():
                 print feature_matrix[state_idx][action_idx]
                 break
     print "Done"
+    x = np.reshape(feature_matrix, (n_states * ts.n_action_vars, ts.n_state_vars + ts.n_action_vars))
+    print x.shape, x.size
+    # print x[0:8]
+    # print feature_matrix[0]
+    print x[8:16] == feature_matrix[1]
     #while True:
         #r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
         #r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
