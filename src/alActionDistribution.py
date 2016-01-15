@@ -128,7 +128,7 @@ def softmax(w, t = 1.0):
     dist = e/e.sum(axis=1).reshape((len(e), 1))
     return dist
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 30):
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 1):
     r1_q = np.zeros((n_states, ts.n_action_vars))
     r2_q = np.zeros((n_states, ts.n_action_vars))
 
@@ -154,11 +154,14 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
             r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
 
+            # get max action index for both agents
             r1_max_action_idx = r1_q[r1_state_prime_idx].argmax()
-            r2_max_action_idx = r2_q[r1_state_prime_idx].argmax()
+            r2_max_action_idx = r2_q[r2_state_prime_idx].argmax()
 
-            r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] + gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
-            r2_q[r1_state_idx][r1_action_idx] = r2_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] + gamma * r2_q[r1_state_prime_idx][r1_max_action_idx] - r2_q[r1_state_idx][r1_action_idx])
+            r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] +
+                    gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
+            r2_q[r2_state_idx][r2_action_idx] = r2_q[r2_state_idx][r2_action_idx] + alpha * (r2_reward[r2_state_idx][r2_action_idx] +
+                    gamma * r2_q[r2_state_prime_idx][r2_max_action_idx] - r2_q[r2_state_idx][r2_action_idx])
 
             # update current states to new states
             r1_state_tup = r1_state_prime_tup
