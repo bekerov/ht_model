@@ -68,6 +68,9 @@ def select_random_action(state_action_vector):
     action = ts.task_actions_index[action_idx]
     return action
 
+def get_reshape_idx(state_idx, action_idx):
+    return (state_idx * ts.n_action_vars + action_idx)
+
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
 
@@ -79,20 +82,22 @@ def main():
     r1_state_tup = start_state
     r2_state_tup = start_state
     print feature_matrix.shape, feature_matrix.size
-    for state_idx, task_state_tup in enumerate(task_states_list):
-        for action_idx in ts.task_actions_index:
-            task_action = ts.task_actions_index[action_idx]
-            cmpr = feature_matrix[state_idx][action_idx] == ts.get_feature_vector(task_state_tup, task_action)
-            if not np.all(cmpr):
-                print ts.get_feature_vector(task_state_tup, task_action)
-                print feature_matrix[state_idx][action_idx]
-                break
-    print "Done"
+    # for state_idx, task_state_tup in enumerate(task_states_list):
+        # for action_idx in ts.task_actions_index:
+            # task_action = ts.task_actions_index[action_idx]
+            # cmpr = feature_matrix[state_idx][action_idx] == ts.get_feature_vector(task_state_tup, task_action)
+            # if not np.all(cmpr):
+                # print ts.get_feature_vector(task_state_tup, task_action)
+                # print feature_matrix[state_idx][action_idx]
+                # break
     x = np.reshape(feature_matrix, (n_states * ts.n_action_vars, ts.n_state_vars + ts.n_action_vars))
     print x.shape, x.size
     # print x[0:8]
     # print feature_matrix[0]
-    print x[8:16] == feature_matrix[1]
+    # print x[8:16] == feature_matrix[1]
+    y = feature_matrix[50][3]
+    z = x[get_reshape_idx(50, 3)]
+    print y == z
     #while True:
         #r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
         #r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
