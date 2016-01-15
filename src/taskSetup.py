@@ -34,8 +34,8 @@ State = namedtuple("State",
         )
 n_state_vars = 7
 
-# dictionary which maps action key to a tuple containing an index and explanation for the action
-task_actions_dict = {
+# dictionary which maps index to an action key to a tuple containing an index and explanation for the action
+task_actions_expl = {
         'TR': (0, 'Take robot\'s box from table'),
         'K' : (1, 'Keep box on table'),
         'R' : (2, 'Receive box from teammate'),
@@ -45,7 +45,9 @@ task_actions_dict = {
         'WS': (6, 'Wait for state change'),
         'X' : (7, 'Exit task')
         }
-n_action_vars = len(task_actions_dict)
+# dictionary which maps index to action key
+task_actions_index = { 0: 'TR', 1: 'K', 2: 'R', 3: 'TH', 4: 'G', 5: 'WG', 6: 'WS', 7: 'X' }
+n_action_vars = len(task_actions_expl)
 
 # A class to hold task param indices to index into task params list after reading
 class TaskParams:
@@ -160,7 +162,7 @@ def get_feature_vector(task_state_tup, current_action):
     """
     task_state_list = list(task_state_tup)
     state_feature = [3 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
-    action_feature = [1 if action == current_action else 0 for action in task_actions_dict.keys()]
+    action_feature = [1 if action == current_action else 0 for action in task_actions_expl.keys()]
     feature_vector = state_feature + action_feature
 
     return np.array(feature_vector)
@@ -171,7 +173,7 @@ def generate_feature_matrix(task_states_list):
     """
     feature_matrix = np.empty((0, (n_state_vars + n_action_vars)))
     for task_state_tup in task_states_list:
-        for task_action in task_actions_dict:
+        for task_action in task_actions_expl:
             feature_vector = get_feature_vector(task_state_tup, task_action)
             feature_matrix = np.vstack((feature_matrix, feature_vector))
 
@@ -200,7 +202,7 @@ def load_experiment_data(task_states_list, task_start_state_set):
                 experiment_time = int(fields[0]) # current time t from t_0
                 current_action = fields[-1]
 
-                if current_action not in task_actions_dict:
+                if current_action not in task_actions_expl:
                     logging.error("Filename: %s", expert_file_name)
                     logging.error("Line: %d", time_step+3)
                     logging.error("Action %s not recognized", current_action)

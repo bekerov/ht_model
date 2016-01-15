@@ -80,9 +80,9 @@ def run_simulation(r1_state_action_distribution_dict, r2_state_action_distributi
         r1_action = select_random_action(r1_state_action_distribution_dict[r1_state_tup])
         r2_action = select_random_action(r2_state_action_distribution_dict[r2_state_tup])
         logging.debug("%s", colored("Agent 1 state before action: %s" % str(r1_state_tup), 'red'))
-        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_dict[r1_action][1], 'red'))
+        logging.debug("%s", colored("Agent 1 action: %s" % ts.task_actions_expl[r1_action][1], 'red'))
         logging.debug("%s", colored("Agent 2 state before action: %s" % str(r2_state_tup), 'cyan'))
-        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_dict[r2_action][1], 'cyan'))
+        logging.debug("%s", colored("Agent 2 action: %s" % ts.task_actions_expl[r2_action][1], 'cyan'))
 
         if r1_action == 'X' and r2_action == 'X':
             break

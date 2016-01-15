@@ -35,7 +35,7 @@ for state_idx, task_state_tup in enumerate(task_states_list):
 state_action_space = np.zeros((n_states, ts.n_action_vars))
 state_action_space[:] = -np.inf
 for state_idx, task_state_tup in enumerate(task_states_list):
-    action_idx = [ts.task_actions_dict[_][0] for _ in task_state_action_dict[task_state_tup]]
+    action_idx = [ts.task_actions_expl[_][0] for _ in task_state_action_dict[task_state_tup]]
     np.put(state_action_space[state_idx], action_idx, 0)
 
 # Q-Learning parameters
@@ -52,21 +52,23 @@ def compute_random_state_action_distribution():
     return random_state_action_dist
 
 def extract_policy(q_state_action_matrix):
-    """Function to extract the policy from q_value matrix
+    """Function to extract the policy from q_value matrix using argmax
     """
     policy = dict()
-    action_keys = {v[0]: k for k, v in ts.task_actions_dict.items()}
     for state_idx, task_state_tup in enumerate(task_states_list):
         action_idx = np.argmax(q_state_action_matrix[state_idx])
-        policy[task_state_tup] = action_keys[action_idx]
+        policy[task_state_tup] = ts.task_actions_index[action_idx]
 
     return policy
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    policy = extract_policy(compute_random_state_action_distribution())
 
-    pprint.pprint(policy)
+    r1_state_action_dist = compute_random_state_action_distribution()
+    pprint.pprint(extract_policy(r1_state_action_dist))
+    for state_idx, task_state_tup in enumerate(task_states_list):
+        action_idx = np.random.choice(np.arange(r1_state_action_dist[state_idx].size), p = r1_state_action_dist[state_idx])
+        print ts.task_actions_index[action_idx]
 
 if __name__=='__main__':
     main()
