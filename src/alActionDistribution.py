@@ -143,7 +143,7 @@ def main():
     r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
     r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
-    n_episodes = 1
+    n_episodes = 100
 
     r1_q = np.zeros((n_states, ts.n_action_vars))
     r2_q = np.zeros((n_states, ts.n_action_vars))
@@ -167,6 +167,15 @@ def main():
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
             r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
 
+            r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
+            r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
+
+            r1_max_action_idx = r1_q[r1_state_prime_idx].argmax()
+            r2_max_action_idx = r2_q[r1_state_prime_idx].argmax()
+
+            r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] + gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
+            r2_q[r1_state_idx][r1_action_idx] = r2_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] + gamma * r2_q[r1_state_prime_idx][r1_max_action_idx] - r2_q[r1_state_idx][r1_action_idx])
+
             # update current states to new states
             r1_state_tup = r1_state_prime_tup
             r2_state_tup = r2_state_prime_tup
@@ -174,6 +183,8 @@ def main():
             # update the state indices for both agents
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
+
+    print r1_q
 
     #i = 1
     #while True:
