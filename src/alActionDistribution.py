@@ -74,7 +74,7 @@ def get_feature_idx(state_idx, action_idx):
     return (state_idx * ts.n_action_vars + action_idx)
 
 def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist):
-    """Function to compute the feature expectation of the agents by running the simulation for n_experiments. The feature expectations are normalized to bind them within 1
+    """Function to compute the feature expectation of the agents by running the simulation for n_experiments. The feature expectations are normalized (using 1-norm) to bind them within 1
     """
     r1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
     r2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
@@ -112,7 +112,7 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
     r1_feature_expectation = r1_feature_expectation/n_experiments
     r2_feature_expectation = r2_feature_expectation/n_experiments
 
-    return r1_feature_expectation/np.linalg.norm(r1_feature_expectation), r2_feature_expectation/np.linalg.norm(r2_feature_expectation)
+    return r1_feature_expectation/np.linalg.norm(r1_feature_expectation, ord = 1), r2_feature_expectation/np.linalg.norm(r2_feature_expectation, ord = 1)
 
 def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     """Function to compute mu_bar_current using the forumula from Abbeel and Ng's paper page 4
@@ -169,7 +169,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation)
+    mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
 
     #team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
     i = 1
@@ -197,11 +197,15 @@ def main():
         r1_w = mu_e_normalized - mu_curr_r1
         r2_w = mu_e_normalized - mu_curr_r2
 
+        print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
+        print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
+
         r1_t = np.linalg.norm(r1_w)
         r2_t = np.linalg.norm(r2_w)
 
-        print "r1_t = ", r1_t, "\n"
-        print "r2_t = ", r2_t, "\n"
+        print
+        print "r1_t = ", r1_t
+        print "r2_t = ", r2_t
 
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
