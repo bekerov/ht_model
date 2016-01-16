@@ -3,8 +3,9 @@
 import random
 import logging
 
-import taskSetup as ts
 import simulationFunctions as sf
+
+from loadTaskParams import *
 
 """This module creates an expert action distribution for the box color sort task
    based on the most frequent actions taken by humans given a particular
@@ -13,17 +14,6 @@ import simulationFunctions as sf
 
 # set logging level, change to DEBUG for colored output
 logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
-
-# load task params from pickle file
-task_params = ts.load_task_parameters()
-task_states_list = task_params[ts.TaskParams.task_states_list]
-task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
-task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
-feature_matrix = task_params[ts.TaskParams.feature_matrix]
-expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]
-expert_state_action_dict = task_params[ts.TaskParams.expert_state_action_dict]
-n_experiments = task_params[ts.TaskParams.n_experiments]
-time_per_step = task_params[ts.TaskParams.time_per_step]
 
 def compute_expert_state_action_distribution_dict():
     """Function to compute expert Q value based on the processed video files.
@@ -52,3 +42,4 @@ def simulate_expert_state_action_distribution():
 
 if __name__=='__main__':
     simulate_expert_state_action_distribution()
+
