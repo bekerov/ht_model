@@ -6,6 +6,7 @@ import random
 import pprint
 import numpy as np
 
+from termcolor import colored
 import taskSetup as ts
 import simulationFunctions as sf
 
@@ -118,7 +119,7 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
     return r1_feature_expectation/np.linalg.norm(r1_feature_expectation, ord = 1), r2_feature_expectation/np.linalg.norm(r2_feature_expectation, ord = 1)
 
 def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
-    """Function to compute mu_bar_current using the forumula from Abbeel and Ng's paper page 4
+    """Function to compute mu_bar_current using the projection forumula from Abbeel and Ng's paper page 4
     """
     x = mu_curr - mu_bar_prev
     y = mu_e - mu_bar_prev
@@ -127,6 +128,8 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     return mu_bar_curr
 
 def softmax(w, t = 1.0):
+    """Function to calculate the softmax of a matrix, normalizing each row for probability
+    """
     e = np.exp(w / t)
     dist = e/e.sum(axis=1).reshape((len(e), 1))
     return dist
@@ -141,6 +144,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
         r2_state_idx = r1_state_idx
         r1_state_tup = start_state
         r2_state_tup = start_state
+        step = 1
 
         while True:
             r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
@@ -148,60 +152,55 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_action_idx = ts.task_actions_expl[r1_action][0]
             r2_action_idx = ts.task_actions_expl[r2_action][0]
 
-            print "*************************************************************************************************"
+            print "************************************* STEP ", step, "****************************************************"
             print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print "r1_state_tup = ", r1_state_tup
-            print "r1_state_idx = ", r1_state_idx
             print
-            print "r1_state_tup = ", r2_state_tup
-            print "r2_state_idx = ", r2_state_idx
-            print
+            logging.info("%s", colored("r1_state_tup = %s, state_idx = %d" % (r1_state_tup, r1_state_idx), 'red', attrs = ['bold']))
+            logging.info("%s", colored("r2_state_tup = %s, state_idx = %d" % (r2_state_tup, r2_state_idx), 'cyan', attrs = ['bold']))
 
             if r1_action == 'X' and r2_action == 'X':
                 break
+            logging.info("%s", colored("r1_action = %s, action_idx = %d" % (r1_action, r1_action_idx), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_action = %s, action_idx = %d" % (r2_action, r2_action_idx), 'cyan', attrs = ['bold']))
 
-            print "r1_action = ", r1_action
-            print "r1_action_idx = ", r1_action_idx
-            print
-            print "r2_action_idx = ", r2_action_idx
-            print "r2_action = ", r2_action
-            print
 
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
 
             print "@@@@@@@@@@@@@@@@@@@@@ AFTER 1st AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print "r1_state_prime_tup = ", r1_state_prime_tup
-            print "r2_state_prime_tup = ", r2_state_prime_tup
             print
+            logging.info("%s", colored("r1_state_prime_tup = %s" % str(r1_state_prime_tup), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_state_prime_tup = %s" % str(r2_state_prime_tup), 'cyan', attrs = ['bold']))
 
             r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
             r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
             r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
 
             print "@@@@@@@@@@@@@@@@@@@@@ AFTER 2nd AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print "r1_state_prime_tup = ", r1_state_prime_tup
-            print "r1_state_prime_idx = ", r1_state_prime_idx
             print
-            print "r2_state_prime_tup = ", r2_state_prime_tup
-            print "r2_state_prime_idx = ", r2_state_prime_idx
-            print
-
+            logging.info("%s", colored("r1_state_prime_tup = %s, state_idx = %d" % (r1_state_prime_tup, r1_state_prime_idx), 'red', attrs = ['bold']))
+            logging.info("%s", colored("r2_state_prime_tup = %s, state_idx = %d" % (r2_state_prime_tup, r2_state_prime_idx), 'cyan', attrs = ['bold']))
 
             # get max action index for both agents
             r1_max_action_idx = r1_q[r1_state_prime_idx].argmax()
             r2_max_action_idx = r2_q[r2_state_prime_idx].argmax()
 
-            print "r1_max_action = ", ts.task_actions_index[r1_max_action_idx]
-            print "r1_max_action_idx = ", r1_max_action_idx
+            logging.info("%s", colored("r1_max_action = %s, action_idx = %d" % (ts.task_actions_index[r1_max_action_idx], r1_max_action_idx), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_max_action = %s, action_idx = %d" % (ts.task_actions_index[r2_max_action_idx], r2_max_action_idx), 'cyan', attrs = ['bold']))
+
+            print "################################## Q BEFORE UPDATE #####################################"
             print
-            print "r2_max_action = ", ts.task_actions_index[r2_max_action_idx]
-            print "r2_max_action_idx = ", r2_max_action_idx
-            print
+            logging.info("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
 
             r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] +
                     gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
             r2_q[r2_state_idx][r2_action_idx] = r2_q[r2_state_idx][r2_action_idx] + alpha * (r2_reward[r2_state_idx][r2_action_idx] +
                     gamma * r2_q[r2_state_prime_idx][r2_max_action_idx] - r2_q[r2_state_idx][r2_action_idx])
+
+            print "################################## Q AFTER UPDATE #####################################"
+            print
+            logging.info("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
 
             # update current states to new states
             r1_state_tup = r1_state_prime_tup
@@ -211,7 +210,8 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
 
-            print "*************************************************************************************************"
+            print "************************************* END OF STEP ", step, "****************************************************"
+            step = step + 1
             user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
             if user_input.upper() == 'Q':
                break;
@@ -222,61 +222,60 @@ def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
 
-    dist = compute_random_state_action_distribution()
-    action = select_random_action(dist[np.random.randint(0, n_states)])
-    print action
-    print dist
+    #dist = compute_random_state_action_distribution()
+    #action = select_random_action(dist[np.random.randint(0, n_states)])
+    #print action
+    #print dist
 
-    #team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
-    #i = 1
-    #while True:
-        #print "Iteration: ", i
-        #if i == 1:
-            #r1_state_action_dist = compute_random_state_action_distribution()
-            #r2_state_action_dist = compute_random_state_action_distribution()
-        #else:
-            #r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
+    i = 1
+    while True:
+        print "Iteration: ", i
+        if i == 1:
+            r1_state_action_dist = compute_random_state_action_distribution()
+            r2_state_action_dist = compute_random_state_action_distribution()
+        else:
+            r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
 
-        #mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
+        mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
-        #if i == 1:
-            #mu_bar_curr_r1 = mu_curr_r1
-            #mu_bar_curr_r2 = mu_curr_r2
-        #else:
-            #mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
-            #mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
-
-
-        ## update the weights
-        #r1_w = mu_e_normalized - mu_curr_r1
-        #r2_w = mu_e_normalized - mu_curr_r2
-
-        #r1_t = np.linalg.norm(r1_w)
-        #r2_t = np.linalg.norm(r2_w)
-
-        #r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
-        #r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
+        if i == 1:
+            mu_bar_curr_r1 = mu_curr_r1
+            mu_bar_curr_r2 = mu_curr_r2
+        else:
+            mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
+            mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
 
 
-        #if i != 1:
-            #print "mu_curr_r1 = ", mu_curr_r1, "\n"
-            #print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
-            #print "mu_curr_r2 = ", mu_curr_r2, "\n"
-            #print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
-            #print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
-            #print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
-            #print
-            #print "r1_t = ", r1_t
-            #print "r2_t = ", r2_t
-            #print "**********************************************************"
-            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            #if user_input.upper() == 'Q':
-               #break;
-            #print "**********************************************************"
+        # update the weights
+        r1_w = mu_e_normalized - mu_curr_r1
+        r2_w = mu_e_normalized - mu_curr_r2
 
-        #i = i + 1
-        #mu_bar_prev_r1 = mu_bar_curr_r1
-        #mu_bar_prev_r2 = mu_bar_curr_r2
+        r1_t = np.linalg.norm(r1_w)
+        r2_t = np.linalg.norm(r2_w)
+
+        r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
+        r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
+
+
+        if i != 1:
+            print "mu_curr_r1 = ", mu_curr_r1, "\n"
+            print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
+            print "mu_curr_r2 = ", mu_curr_r2, "\n"
+            print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
+            print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
+            print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
+            print
+            print "r1_t = ", r1_t
+            print "r2_t = ", r2_t
+            print "**********************************************************"
+            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            if user_input.upper() == 'Q':
+               break;
+            print "**********************************************************"
+
+        i = i + 1
+        mu_bar_prev_r1 = mu_bar_curr_r1
+        mu_bar_prev_r2 = mu_bar_curr_r2
 
 if __name__=='__main__':
     main()
