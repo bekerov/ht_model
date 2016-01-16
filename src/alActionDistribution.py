@@ -32,7 +32,7 @@ for state_idx, task_state_tup in enumerate(task_states_list):
     np.put(state_action_space[state_idx], action_idx, 0)
 
 # Q-Learning parameters
-alpha = 0.2
+alpha = 0.5
 gamma = 1.0
 
 def compute_random_state_action_distribution():
@@ -303,3 +303,4 @@ def main():
 
 if __name__=='__main__':
     main()
+
