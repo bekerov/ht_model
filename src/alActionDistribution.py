@@ -145,18 +145,55 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_action_idx = ts.task_actions_expl[r1_action][0]
             r2_action_idx = ts.task_actions_expl[r2_action][0]
 
+            print "*************************************************************************************************"
+            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print "r1_state_tup = ", r1_state_tup
+            print "r1_state_idx = ", r1_state_idx
+            print
+            print "r1_state_tup = ", r2_state_tup
+            print "r2_state_idx = ", r2_state_idx
+            print
+
             if r1_action == 'X' and r2_action == 'X':
                 break
 
-            r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
-            r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
+            print "r1_action = ", r1_action
+            print "r1_action_idx = ", r1_action_idx
+            print
+            print "r2_action_idx = ", r2_action_idx
+            print "r2_action = ", r2_action
+            print
 
+            r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
+
+            print "@@@@@@@@@@@@@@@@@@@@@ AFTER 1st AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print "r1_state_prime_tup = ", r1_state_prime_tup
+            print "r2_state_prime_tup = ", r2_state_prime_tup
+            print
+
+            r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
             r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
             r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
+
+            print "@@@@@@@@@@@@@@@@@@@@@ AFTER 2nd AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+            print "r1_state_prime_tup = ", r1_state_prime_tup
+            print "r1_state_prime_idx = ", r1_state_prime_idx
+            print
+            print "r2_state_prime_tup = ", r2_state_prime_tup
+            print "r2_state_prime_idx = ", r2_state_prime_idx
+            print
+
 
             # get max action index for both agents
             r1_max_action_idx = r1_q[r1_state_prime_idx].argmax()
             r2_max_action_idx = r2_q[r2_state_prime_idx].argmax()
+
+            print "r1_max_action = ", ts.task_actions_index[r1_max_action_idx]
+            print "r1_max_action_idx = ", r1_max_action_idx
+            print
+            print "r2_max_action = ", ts.task_actions_index[r2_max_action_idx]
+            print "r2_max_action_idx = ", r2_max_action_idx
+            print
 
             r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] +
                     gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
@@ -170,6 +207,11 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             # update the state indices for both agents
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
+
+            print "*************************************************************************************************"
+            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            if user_input.upper() == 'Q':
+               break;
 
     return softmax(r1_q), softmax(r2_q)
 
@@ -196,37 +238,37 @@ def main():
             mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
             mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
 
-        print "mu_curr_r1 = ", mu_curr_r1, "\n"
-        print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
-        print "mu_curr_r2 = ", mu_curr_r2, "\n"
-        print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
 
         # update the weights
         r1_w = mu_e_normalized - mu_curr_r1
         r2_w = mu_e_normalized - mu_curr_r2
 
-        print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
-        print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
-
         r1_t = np.linalg.norm(r1_w)
         r2_t = np.linalg.norm(r2_w)
-
-        print
-        print "r1_t = ", r1_t
-        print "r2_t = ", r2_t
 
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
+
+        if i != 1:
+            print "mu_curr_r1 = ", mu_curr_r1, "\n"
+            print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
+            print "mu_curr_r2 = ", mu_curr_r2, "\n"
+            print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
+            print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
+            print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
+            print
+            print "r1_t = ", r1_t
+            print "r2_t = ", r2_t
+            print "**********************************************************"
+            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            if user_input.upper() == 'Q':
+               break;
+            print "**********************************************************"
+
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
         mu_bar_prev_r2 = mu_bar_curr_r2
-
-        print "**********************************************************"
-        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        if user_input.upper() == 'Q':
-           break;
-        print "**********************************************************"
 
 if __name__=='__main__':
     main()
