@@ -11,7 +11,8 @@ import taskSetup as ts
 import simulationFunctions as sf
 
 # set logging level
-logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
+#logging.basicConfig(level=logging.debug, format='%(asctime)s-%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format='')
 
 # load task params from pickle file
 task_params = ts.load_task_parameters()
@@ -78,10 +79,13 @@ def get_feature_idx(state_idx, action_idx):
 def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist):
     """Function to compute the feature expectation of the agents by running the simulation for n_experiments. The feature expectations are normalized (using 1-norm) to bind them within 1
     """
+    logging.debug("%s", colored("                                        COMPUTE_NORMALIZED_FEATURE_EXPECTATION                     ", 'white', attrs = ['bold']))
+
     r1_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
     r2_feature_expectation = np.zeros(ts.n_state_vars + ts.n_action_vars)
 
     for i in range(n_experiments):
+        logging.debug("%s", colored("************************************* Trial %d ****************************************************" % (i), 'white', attrs = ['bold']))
         start_state = random.choice(task_start_state_set)
         r1_state_idx = task_states_list.index(start_state)
         r2_state_idx = r1_state_idx
@@ -90,29 +94,28 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
         step = 1
 
         while True:
-            #print "************************************* STEP IN COMPUTE MU_E", step, "****************************************************"
-            #print "r1_state_action_dist = ", r1_state_action_dist[r1_state_idx]
+            logging.debug("%s", colored("************************************* Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_action_dist = %s" % (r1_state_action_dist[r1_state_idx]), 'red', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_action_dist = %s" % (r1_state_action_dist[r1_state_idx]), 'cyan', attrs = ['bold']))
+
             r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
-            #print "r2_state_action_dist = ", r2_state_action_dist[r1_state_idx]
             r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
             r1_action_idx = ts.task_actions_expl[r1_action][0]
             r2_action_idx = ts.task_actions_expl[r2_action][0]
 
-            #print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            #print
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
             logging.debug("%s", colored("r1_state_tup = %s, state_idx = %d" % (r1_state_tup, r1_state_idx), 'red', attrs = ['bold']))
             logging.debug("%s", colored("r2_state_tup = %s, state_idx = %d" % (r2_state_tup, r2_state_idx), 'cyan', attrs = ['bold']))
             logging.debug("%s", colored("r1_action = %s, action_idx = %d" % (r1_action, r1_action_idx), 'red', attrs = ['bold']))
             logging.debug("%s\n", colored("r2_action = %s, action_idx = %d" % (r2_action, r2_action_idx), 'cyan', attrs = ['bold']))
 
             if r1_action == 'X' and r2_action == 'X':
-                #print "************************************* END OF STEP IN COMPUTE MU_E", step, "****************************************************"
+                logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
                 break
 
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
 
-            #print "@@@@@@@@@@@@@@@@@@@@@ AFTER 1st AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            #print
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ After 1st Agent Action @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
             logging.debug("%s", colored("r1_state_prime_tup = %s" % str(r1_state_prime_tup), 'red', attrs = ['bold']))
             logging.debug("%s\n", colored("r2_state_prime_tup = %s" % str(r2_state_prime_tup), 'cyan', attrs = ['bold']))
 
@@ -120,8 +123,7 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
             r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
             r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
 
-            #print "@@@@@@@@@@@@@@@@@@@@@ AFTER 2nd AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            #print
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ After 2nd Agent Action @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
             logging.debug("%s", colored("r1_state_prime_tup = %s, state_idx = %d" % (r1_state_prime_tup, r1_state_prime_idx), 'red', attrs = ['bold']))
             logging.debug("%s", colored("r2_state_prime_tup = %s, state_idx = %d" % (r2_state_prime_tup, r2_state_prime_idx), 'cyan', attrs = ['bold']))
 
@@ -136,8 +138,10 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
 
-            #print "************************************* END OF STEP IN COMPUTE MU_E", step, "****************************************************"
+            logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
             step = step + 1
+
+        logging.debug("%s", colored("************************************* End of Trial %d ****************************************************" % (i), 'white', attrs = ['bold']))
 
     r1_feature_expectation = r1_feature_expectation/n_experiments
     r2_feature_expectation = r2_feature_expectation/n_experiments
@@ -160,14 +164,19 @@ def softmax(w, t = 1.0):
     dist = e/e.sum(axis=1).reshape((len(e), 1))
     return dist
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 1):
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 50):
+    """Function that runs the q learning algorithm for both the agents and returns the action_distribution (after softmaxing it)
+    """
+    logging.debug("%s", colored("                                        TEAM_Q_LEARNING                     ", 'white', attrs = ['bold']))
     r1_q = np.zeros((n_states, ts.n_action_vars))
     r2_q = np.zeros((n_states, ts.n_action_vars))
 
+    # for actions that cannot be taken in particular states, set q value to be -inf so that, that action will never be chosen
     r1_q[state_action_space == -np.inf] = -np.inf
     r2_q[state_action_space == -np.inf] = -np.inf
 
     for episode in range(n_episodes):
+        logging.debug("%s", colored("************************************* Episode %d ****************************************************" % (episode), 'white', attrs = ['bold']))
         start_state = random.choice(task_start_state_set)
         r1_state_idx = task_states_list.index(start_state)
         r2_state_idx = r1_state_idx
@@ -176,64 +185,59 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
         step = 1
 
         while True:
-            print "************************************* STEP ", step, "****************************************************"
-            print "r1_state_action_dist = ", r1_state_action_dist[r1_state_idx]
+            logging.debug("%s", colored("************************************* Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_action_dist = %s" % (r1_state_action_dist[r1_state_idx]), 'red', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_action_dist = %s" % (r1_state_action_dist[r1_state_idx]), 'cyan', attrs = ['bold']))
+
             r1_action = select_random_action(r1_state_action_dist[r1_state_idx])
-            print "r2_state_action_dist = ", r2_state_action_dist[r1_state_idx]
             r2_action = select_random_action(r2_state_action_dist[r2_state_idx])
             r1_action_idx = ts.task_actions_expl[r1_action][0]
             r2_action_idx = ts.task_actions_expl[r2_action][0]
 
 
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print
-            logging.info("%s", colored("r1_state_tup = %s, state_idx = %d" % (r1_state_tup, r1_state_idx), 'red', attrs = ['bold']))
-            logging.info("%s", colored("r2_state_tup = %s, state_idx = %d" % (r2_state_tup, r2_state_idx), 'cyan', attrs = ['bold']))
-            logging.info("%s", colored("r1_action = %s, action_idx = %d" % (r1_action, r1_action_idx), 'red', attrs = ['bold']))
-            logging.info("%s\n", colored("r2_action = %s, action_idx = %d" % (r2_action, r2_action_idx), 'cyan', attrs = ['bold']))
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ BEFORE ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_tup = %s, state_idx = %d" % (r1_state_tup, r1_state_idx), 'red', attrs = ['bold']))
+            logging.debug("%s", colored("r2_state_tup = %s, state_idx = %d" % (r2_state_tup, r2_state_idx), 'cyan', attrs = ['bold']))
+            logging.debug("%s", colored("r1_action = %s, action_idx = %d" % (r1_action, r1_action_idx), 'red', attrs = ['bold']))
+            logging.debug("%s\n", colored("r2_action = %s, action_idx = %d" % (r2_action, r2_action_idx), 'cyan', attrs = ['bold']))
 
             if r1_action == 'X' and r2_action == 'X':
-                print "************************************* END OF STEP ", step, "****************************************************"
+                logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
                 break
-
 
             r1_state_prime_tup, r2_state_prime_tup = sf.simulate_next_state(r1_action, r1_state_tup, r2_state_tup) # first agent acting
 
-            print "@@@@@@@@@@@@@@@@@@@@@ AFTER 1st AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print
-            logging.info("%s", colored("r1_state_prime_tup = %s" % str(r1_state_prime_tup), 'red', attrs = ['bold']))
-            logging.info("%s\n", colored("r2_state_prime_tup = %s" % str(r2_state_prime_tup), 'cyan', attrs = ['bold']))
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ After 1st Agent Action @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_prime_tup = %s" % str(r1_state_prime_tup), 'red', attrs = ['bold']))
+            logging.debug("%s\n", colored("r2_state_prime_tup = %s" % str(r2_state_prime_tup), 'cyan', attrs = ['bold']))
 
             r2_state_prime_tup, r1_state_prime_tup = sf.simulate_next_state(r2_action, r2_state_prime_tup, r1_state_prime_tup) # second agent acting
             r1_state_prime_idx = task_states_list.index(r1_state_prime_tup)
             r2_state_prime_idx = task_states_list.index(r2_state_prime_tup)
 
-            print "@@@@@@@@@@@@@@@@@@@@@ AFTER 2nd AGENT ACTION @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-            print
-            logging.info("%s", colored("r1_state_prime_tup = %s, state_idx = %d" % (r1_state_prime_tup, r1_state_prime_idx), 'red', attrs = ['bold']))
-            logging.info("%s", colored("r2_state_prime_tup = %s, state_idx = %d" % (r2_state_prime_tup, r2_state_prime_idx), 'cyan', attrs = ['bold']))
+            logging.debug("%s\n", colored("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ After 2nd Agent Action @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_state_prime_tup = %s, state_idx = %d" % (r1_state_prime_tup, r1_state_prime_idx), 'red', attrs = ['bold']))
+            logging.debug("%s", colored("r2_state_prime_tup = %s, state_idx = %d" % (r2_state_prime_tup, r2_state_prime_idx), 'cyan', attrs = ['bold']))
 
             # get max action index for both agents
             r1_max_action_idx = r1_q[r1_state_prime_idx].argmax()
             r2_max_action_idx = r2_q[r2_state_prime_idx].argmax()
 
-            logging.info("%s", colored("r1_max_action = %s, action_idx = %d" % (ts.task_actions_index[r1_max_action_idx], r1_max_action_idx), 'red', attrs = ['bold']))
-            logging.info("%s\n", colored("r2_max_action = %s, action_idx = %d" % (ts.task_actions_index[r2_max_action_idx], r2_max_action_idx), 'cyan', attrs = ['bold']))
+            logging.debug("%s", colored("r1_max_action = %s, action_idx = %d" % (ts.task_actions_index[r1_max_action_idx], r1_max_action_idx), 'red', attrs = ['bold']))
+            logging.debug("%s\n", colored("r2_max_action = %s, action_idx = %d" % (ts.task_actions_index[r2_max_action_idx], r2_max_action_idx), 'cyan', attrs = ['bold']))
 
-            print "################################## Q BEFORE UPDATE #####################################"
-            print
-            logging.info("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
-            logging.info("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
+            logging.debug("%s\n", colored("################################## Q Value Before Update #####################################", 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
+            logging.debug("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
 
             r1_q[r1_state_idx][r1_action_idx] = r1_q[r1_state_idx][r1_action_idx] + alpha * (r1_reward[r1_state_idx][r1_action_idx] +
                     gamma * r1_q[r1_state_prime_idx][r1_max_action_idx] - r1_q[r1_state_idx][r1_action_idx])
             r2_q[r2_state_idx][r2_action_idx] = r2_q[r2_state_idx][r2_action_idx] + alpha * (r2_reward[r2_state_idx][r2_action_idx] +
                     gamma * r2_q[r2_state_prime_idx][r2_max_action_idx] - r2_q[r2_state_idx][r2_action_idx])
 
-            print "################################## Q AFTER UPDATE #####################################"
-            print
-            logging.info("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
-            logging.info("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
+            logging.debug("%s\n", colored("################################## Q Value After Update #####################################", 'white', attrs = ['bold']))
+            logging.debug("%s", colored("r1_q[%d][%d] = %f" % (r1_state_idx, r1_action_idx, r1_q[r1_state_idx][r1_action_idx]), 'red', attrs = ['bold']))
+            logging.debug("%s\n", colored("r2_q[%d][%d] = %f" % (r2_state_idx, r2_action_idx, r2_q[r2_state_idx][r2_action_idx]), 'cyan', attrs = ['bold']))
 
             # update current states to new states
             r1_state_tup = r1_state_prime_tup
@@ -243,11 +247,13 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
             r1_state_idx = task_states_list.index(r1_state_tup)
             r2_state_idx = task_states_list.index(r2_state_tup)
 
-            print "************************************* END OF STEP ", step, "****************************************************"
+            logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
             step = step + 1
-            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            if user_input.upper() == 'Q':
-               break;
+            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            #if user_input.upper() == 'Q':
+               #break;
+
+        logging.debug("%s", colored("************************************* End of Episode %d ****************************************************" % (episode), 'white', attrs = ['bold']))
 
     return softmax(r1_q), softmax(r2_q)
 
@@ -255,23 +261,15 @@ def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
 
-    #dist = compute_random_state_action_distribution()
-    #action = select_random_action(dist[np.random.randint(0, n_states)])
-    #print action
-    #print dist
-
     i = 1
     while True:
-        print "Iteration: ", i
+        logging.info("%s", colored("***************** Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
         if i == 1:
             r1_state_action_dist = compute_random_state_action_distribution()
             r2_state_action_dist = compute_random_state_action_distribution()
         else:
             r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
 
-        #print r1_state_action_dist
-        #print "r1 = ", np.sum(r1_state_action_dist)
-        #print "r2 = ", np.sum(r2_state_action_dist)
         mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
         if i == 1:
@@ -280,7 +278,6 @@ def main():
         else:
             mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
             mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
-
 
         # update the weights
         r1_w = mu_e_normalized - mu_curr_r1
@@ -292,22 +289,24 @@ def main():
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
+        logging.info("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
 
-        #if i != 1:
-            #print "mu_curr_r1 = ", mu_curr_r1, "\n"
-            #print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
-            #print "mu_curr_r2 = ", mu_curr_r2, "\n"
-            #print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
-            #print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
-            #print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
-            #print
-            #print "r1_t = ", r1_t
-            #print "r2_t = ", r2_t
-        #print "**********************************************************"
-        #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        #if user_input.upper() == 'Q':
-           #break;
-        #print "**********************************************************"
+        logging.info("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
+        logging.info("%s\n", colored("mu_curr_r2 = %s" % (mu_curr_r2), 'cyan', attrs = ['bold']))
+
+        logging.info("%s", colored("mu_bar_curr_r1 = %s" % (mu_bar_curr_r1), 'red', attrs = ['bold']))
+        logging.info("%s\n", colored("mu_bar_curr_r2 = %s" % (mu_bar_curr_r2), 'cyan', attrs = ['bold']))
+
+        logging.info("%s", colored("r1_w 1-norm = %s" % (np.linalg.norm(r1_w, ord = 1)), 'red', attrs = ['bold']))
+        logging.info("%s\n", colored("r2_w 1-norm = %s" % (np.linalg.norm(r2_w, ord = 1)), 'cyan', attrs = ['bold']))
+
+        logging.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
+        logging.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
+
+        logging.info("%s", colored("***************** End of Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
+        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+        if user_input.upper() == 'Q':
+           break;
 
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
