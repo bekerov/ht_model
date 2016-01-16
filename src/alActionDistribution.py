@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import pprint
@@ -49,6 +50,7 @@ def compute_random_state_action_distribution():
     random_state_action_dist = np.random.rand(n_states, ts.n_action_vars)
     random_state_action_dist[state_action_space == -np.inf] = 0
     random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1)) # normalize each row
+    random_state_action_dist[random_state_action_dist == 0] = -np.inf
 
     return random_state_action_dist
 
@@ -65,6 +67,7 @@ def extract_policy(q_state_action_matrix):
 def select_random_action(state_action_vector):
     """Function to select a random action based on the its probability in the state action distribution
     """
+    state_action_vector[state_action_vector == -np.inf] = 0
     action_idx = np.random.choice(np.arange(state_action_vector.size), p = state_action_vector)
     action = ts.task_actions_index[action_idx]
 
@@ -219,56 +222,61 @@ def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
 
+    dist = compute_random_state_action_distribution()
+    action = select_random_action(dist[np.random.randint(0, n_states)])
+    print action
+    print dist
+
     #team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
-    i = 1
-    while True:
-        print "Iteration: ", i
-        if i == 1:
-            r1_state_action_dist = compute_random_state_action_distribution()
-            r2_state_action_dist = compute_random_state_action_distribution()
-        else:
-            r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
+    #i = 1
+    #while True:
+        #print "Iteration: ", i
+        #if i == 1:
+            #r1_state_action_dist = compute_random_state_action_distribution()
+            #r2_state_action_dist = compute_random_state_action_distribution()
+        #else:
+            #r1_state_action_dist, r2_state_action_dist = team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
 
-        mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
+        #mu_curr_r1, mu_curr_r2 = compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
-        if i == 1:
-            mu_bar_curr_r1 = mu_curr_r1
-            mu_bar_curr_r2 = mu_curr_r2
-        else:
-            mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
-            mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
-
-
-        # update the weights
-        r1_w = mu_e_normalized - mu_curr_r1
-        r2_w = mu_e_normalized - mu_curr_r2
-
-        r1_t = np.linalg.norm(r1_w)
-        r2_t = np.linalg.norm(r2_w)
-
-        r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
-        r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
+        #if i == 1:
+            #mu_bar_curr_r1 = mu_curr_r1
+            #mu_bar_curr_r2 = mu_curr_r2
+        #else:
+            #mu_bar_curr_r1 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r1, mu_curr_r1)
+            #mu_bar_curr_r2 = compute_mu_bar_curr(mu_e_normalized, mu_bar_prev_r2, mu_curr_r2)
 
 
-        if i != 1:
-            print "mu_curr_r1 = ", mu_curr_r1, "\n"
-            print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
-            print "mu_curr_r2 = ", mu_curr_r2, "\n"
-            print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
-            print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
-            print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
-            print
-            print "r1_t = ", r1_t
-            print "r2_t = ", r2_t
-            print "**********************************************************"
-            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            if user_input.upper() == 'Q':
-               break;
-            print "**********************************************************"
+        ## update the weights
+        #r1_w = mu_e_normalized - mu_curr_r1
+        #r2_w = mu_e_normalized - mu_curr_r2
 
-        i = i + 1
-        mu_bar_prev_r1 = mu_bar_curr_r1
-        mu_bar_prev_r2 = mu_bar_curr_r2
+        #r1_t = np.linalg.norm(r1_w)
+        #r2_t = np.linalg.norm(r2_w)
+
+        #r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
+        #r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
+
+
+        #if i != 1:
+            #print "mu_curr_r1 = ", mu_curr_r1, "\n"
+            #print "mu_bar_curr_r1 = ", mu_bar_curr_r1, "\n"
+            #print "mu_curr_r2 = ", mu_curr_r2, "\n"
+            #print "mu_bar_curr_r2 = ", mu_bar_curr_r2, "\n"
+            #print "r1_w = ", np.linalg.norm(r1_w, ord = 1)
+            #print "r2_w = ", np.linalg.norm(r2_w, ord = 1)
+            #print
+            #print "r1_t = ", r1_t
+            #print "r2_t = ", r2_t
+            #print "**********************************************************"
+            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            #if user_input.upper() == 'Q':
+               #break;
+            #print "**********************************************************"
+
+        #i = i + 1
+        #mu_bar_prev_r1 = mu_bar_curr_r1
+        #mu_bar_prev_r2 = mu_bar_curr_r2
 
 if __name__=='__main__':
     main()
