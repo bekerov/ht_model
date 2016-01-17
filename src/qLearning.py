@@ -18,14 +18,11 @@ logging.basicConfig(format='')
 lgr = logging.getLogger("qLearning.py")
 lgr.setLevel(level=logging.INFO) # change level to debug for output
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10):
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10, alpha = 0.1, gamma = 1.0, t = 1.0):
     """Function that runs the q learning algorithm for both the agents and returns the action_distribution (after softmaxing it)
     """
     lgr.debug("%s", colored("                                        TEAM_Q_LEARNING                     ", 'white', attrs = ['bold']))
 
-    # Q-Learning parameters
-    alpha = 0.5
-    gamma = 1.0
     r1_q = np.zeros((n_states, ts.n_action_vars))
     r2_q = np.zeros((n_states, ts.n_action_vars))
 
@@ -114,5 +111,4 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
 
         logging.debug("%s", colored("************************************* End of Episode %d ****************************************************" % (episode+1), 'white', attrs = ['bold']))
 
-    t = 0.5
     return softmax(r1_q, t), softmax(r2_q, t)

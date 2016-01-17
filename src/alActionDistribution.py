@@ -41,7 +41,7 @@ def main():
             r1_state_action_dist = compute_random_state_action_distribution()
             r2_state_action_dist = compute_random_state_action_distribution()
         else:
-            r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward)
+            r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10, alpha = 0.5, t = 0.5)
 
         mu_curr_r1, mu_curr_r2 = mu.compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
