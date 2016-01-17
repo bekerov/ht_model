@@ -37,6 +37,7 @@ def main():
     lgr.info("First iteration does not call qlearning")
     i = 1
     while True:
+        lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
         if i == 1:
             r1_state_action_dist = compute_random_state_action_distribution()
             r2_state_action_dist = compute_random_state_action_distribution()
@@ -63,7 +64,6 @@ def main():
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
         if i % 10 == 1:
-            lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
             lgr.debug("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
 
             lgr.debug("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
