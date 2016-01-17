@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import numpy as np
@@ -85,9 +86,10 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
 
             logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
             step = step + 1
-            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            #if user_input.upper() == 'Q':
-               #break;
+            if lgr.getEffectiveLevel() == logging.DEBUG:
+                user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+                if user_input.upper() == 'Q':
+                    sys.exit()
 
         logging.debug("%s", colored("************************************* End of Trial %d ****************************************************" % (i), 'white', attrs = ['bold']))
 

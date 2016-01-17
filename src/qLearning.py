@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import pprint
@@ -106,9 +107,10 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
 
             logging.debug("%s", colored("************************************* End of Step %d ****************************************************" % (step), 'white', attrs = ['bold']))
             step = step + 1
-            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            #if user_input.upper() == 'Q':
-               #break;
+            if lgr.getEffectiveLevel() == logging.DEBUG:
+                user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+                if user_input.upper() == 'Q':
+                    sys.exit()
 
         logging.debug("%s", colored("************************************* End of Episode %d ****************************************************" % (episode+1), 'white', attrs = ['bold']))
 

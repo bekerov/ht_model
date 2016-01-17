@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import pprint
@@ -33,6 +34,7 @@ def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
 
+    lgr.info("First iteration does not call qlearning")
     i = 1
     while True:
         if i == 1:
@@ -79,7 +81,7 @@ def main():
             lgr.debug("%s", colored("*********************************** End of Iteration %d **************************************" % (i), 'white', attrs = ['bold']))
             user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
             if user_input.upper() == 'Q':
-               break;
+                sys.exit()
 
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
