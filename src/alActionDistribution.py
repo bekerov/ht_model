@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import logging
 import random
 import pprint
@@ -44,12 +43,12 @@ def compute_random_state_action_distribution():
 
     return random_state_action_dist
 
-def extract_policy(q_state_action_matrix):
+def extract_best_policy(state_action_dist):
     """Function to extract the policy from q_value matrix using argmax
     """
     policy = dict()
     for state_idx, task_state_tup in enumerate(task_states_list):
-        action_idx = np.argmax(q_state_action_matrix[state_idx])
+        action_idx = np.argmax(state_action_dist[state_idx])
         policy[task_state_tup] = ts.task_actions_index[action_idx]
 
     return policy
@@ -153,7 +152,7 @@ def softmax(w, t = 1.0):
     dist = e/e.sum(axis=1).reshape((len(e), 1))
     return dist
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 50):
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10):
     """Function that runs the q learning algorithm for both the agents and returns the action_distribution (after softmaxing it)
     """
     logging.debug("%s", colored("                                        TEAM_Q_LEARNING                     ", 'white', attrs = ['bold']))
@@ -252,7 +251,6 @@ def main():
 
     i = 1
     while True:
-        logging.info("%s", colored("***************** Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
         if i == 1:
             r1_state_action_dist = compute_random_state_action_distribution()
             r2_state_action_dist = compute_random_state_action_distribution()
@@ -278,24 +276,26 @@ def main():
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
-        logging.info("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
+        if i % 10 == 1:
+            logging.info("%s", colored("***************** Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
+            logging.info("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
 
-        logging.info("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
-        logging.info("%s\n", colored("mu_curr_r2 = %s" % (mu_curr_r2), 'cyan', attrs = ['bold']))
+            logging.info("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("mu_curr_r2 = %s" % (mu_curr_r2), 'cyan', attrs = ['bold']))
 
-        logging.info("%s", colored("mu_bar_curr_r1 = %s" % (mu_bar_curr_r1), 'red', attrs = ['bold']))
-        logging.info("%s\n", colored("mu_bar_curr_r2 = %s" % (mu_bar_curr_r2), 'cyan', attrs = ['bold']))
+            logging.info("%s", colored("mu_bar_curr_r1 = %s" % (mu_bar_curr_r1), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("mu_bar_curr_r2 = %s" % (mu_bar_curr_r2), 'cyan', attrs = ['bold']))
 
-        logging.info("%s", colored("r1_w 1-norm = %s" % (np.linalg.norm(r1_w, ord = 1)), 'red', attrs = ['bold']))
-        logging.info("%s\n", colored("r2_w 1-norm = %s" % (np.linalg.norm(r2_w, ord = 1)), 'cyan', attrs = ['bold']))
+            logging.info("%s", colored("r1_w 1-norm = %s" % (np.linalg.norm(r1_w, ord = 1)), 'red', attrs = ['bold']))
+            logging.info("%s\n", colored("r2_w 1-norm = %s" % (np.linalg.norm(r2_w, ord = 1)), 'cyan', attrs = ['bold']))
 
-        logging.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
-        logging.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
+            logging.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
+            logging.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
 
-        logging.info("%s", colored("***************** End of Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
-        user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-        if user_input.upper() == 'Q':
-           break;
+            logging.info("%s", colored("***************** End of Iteration %d ***********************" % (i), 'white', attrs = ['bold']))
+            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            if user_input.upper() == 'Q':
+               break;
 
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
