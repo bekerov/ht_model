@@ -8,6 +8,8 @@ import cPickle as pickle
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
+from scipy import stats
+
 import randomActionDistribution
 import expertActionDistribution
 import simulationFunctions as sf
@@ -28,13 +30,17 @@ if __name__=='__main__':
         r1_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
         r2_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
 
+    # random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
+
     for i in range(n_trials):
         start_state = random.choice(tuple(task_start_state_set))
         expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
-        # random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
         n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
-        # n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
-        n_actions_random[i] = sf.run_simulation(r1_initial_state_action_distribution_dict, r2_initial_state_action_distribution_dict, start_state)
+
+        random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
+        n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
+        # n_actions_random[i] = sf.run_simulation(r1_initial_state_action_distribution_dict, r2_initial_state_action_distribution_dict, start_state)
+
         n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r1_learned_state_action_distribution_dict, start_state)
     print "Number of trials = ", n_trials
     print "Metric: Number of action per trial"
@@ -44,35 +50,36 @@ if __name__=='__main__':
     print "Min:\t\t ",format(np.amin(n_actions_expert), '.3f'), "\t\t\t", format(np.amin(n_actions_learned), '.3f'), "\t\t\t", format(np.amin(n_actions_random), '.3f')
     print "Max:\t\t ",format(np.amax(n_actions_expert), '.3f'), "\t\t\t", format(np.amax(n_actions_learned), '.3f'), "\t\t\t", format(np.amax(n_actions_random), '.3f')
     print "Mean:\t\t ",format(np.mean(n_actions_expert), '.3f'), "\t\t\t", format(np.mean(n_actions_learned), '.3f'), "\t\t\t", format(np.mean(n_actions_random), '.3f')
+    print "Mode:\t\t ",format(stats.mode(n_actions_expert)[0][0], '.3f'), "\t\t\t", format(stats.mode(n_actions_learned)[0][0], '.3f'), "\t\t\t", format(stats.mode(n_actions_random)[0][0], '.3f')
     print "Median:\t\t ",format(np.median(n_actions_expert), '.3f'), "\t\t\t", format(np.median(n_actions_learned), '.3f'), "\t\t\t", format(np.median(n_actions_random), '.3f')
     print "Var:\t\t ", format(np.var(n_actions_expert), '.3f'), "\t\t\t", format(np.var(n_actions_learned), '.3f'), "\t\t\t", format(np.var(n_actions_random), '.3f')
     print "Std:\t\t ", format(np.std(n_actions_expert), '.3f'), "\t\t\t", format(np.std(n_actions_learned), '.3f'), "\t\t\t", format(np.std(n_actions_random), '.3f')
 
-hist, bin_edges = np.histogram(n_actions_expert, bins = 100)
-plt.figure(1)
-plt.bar(bin_edges[:-1], hist, width = 1)
-plt.xlim(min(bin_edges), max(bin_edges))
-plt.xlabel('Number of Actions')
-plt.ylabel('Frequency of Actiosn')
-plt.title('Histogram of action frequency for agents using expert policy')
+# hist, bin_edges = np.histogram(n_actions_expert, bins = 100)
+# plt.figure(1)
+# plt.bar(bin_edges[:-1], hist, width = 1)
+# plt.xlim(min(bin_edges), max(bin_edges))
+# plt.xlabel('Number of Actions')
+# plt.ylabel('Frequency of Actiosn')
+# plt.title('Histogram of action frequency for agents using expert policy')
 
-hist, bin_edges = np.histogram(n_actions_random, bins = 100)
-plt.figure(2)
-plt.bar(bin_edges[:-1], hist, width = 1)
-plt.xlim(min(bin_edges), max(bin_edges))
-plt.xlabel('Number of Actions')
-plt.ylabel('Frequency of Actiosn')
-plt.title('Histogram of action frequency for agents using random policy')
+# hist, bin_edges = np.histogram(n_actions_random, bins = 100)
+# plt.figure(2)
+# plt.bar(bin_edges[:-1], hist, width = 1)
+# plt.xlim(min(bin_edges), max(bin_edges))
+# plt.xlabel('Number of Actions')
+# plt.ylabel('Frequency of Actiosn')
+# plt.title('Histogram of action frequency for agents using random policy')
 
-hist, bin_edges = np.histogram(n_actions_learned, bins = 100)
-plt.figure(3)
-plt.bar(bin_edges[:-1], hist, width = 1)
-plt.xlim(min(bin_edges), max(bin_edges))
-plt.xlabel('Number of Actions')
-plt.ylabel('Frequency of Actiosn')
-plt.title('Histogram of action frequency for agents using learned policy')
+# hist, bin_edges = np.histogram(n_actions_learned, bins = 100)
+# plt.figure(3)
+# plt.bar(bin_edges[:-1], hist, width = 1)
+# plt.xlim(min(bin_edges), max(bin_edges))
+# plt.xlabel('Number of Actions')
+# plt.ylabel('Frequency of Actiosn')
+# plt.title('Histogram of action frequency for agents using learned policy')
 
-plt.show()
+# plt.show()
 
 # the histogram of the data
 #n, bins, patches = plt.hist(n_actions_expert, 100, normed=False, facecolor='green', alpha=0.75)

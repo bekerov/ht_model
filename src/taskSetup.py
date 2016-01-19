@@ -146,6 +146,10 @@ def get_valid_actions(task_state_tup):
         # if task is done, robot can exit
         actions_list.append('X')
 
+
+# if I'm holding my book, I can put it back down
+# I number of books on my side < max_boxes_acc, I can gesture one of my book
+
     return actions_list
 
 def generate_task_state_action_dict(task_states_list):

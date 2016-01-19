@@ -35,12 +35,12 @@ def simulate_learned_state_action_distribution():
     """Function to simulate AL learned action distribution for both the agents
     """
     with open("state_action_dict.pickle", "r") as state_action_dict_file:
-        r1_state_action_distribution_dict = pickle.load(state_action_dict_file)
-        r2_state_action_distribution_dict = pickle.load(state_action_dict_file)
+        r1_learned_state_action_distribution_dict = pickle.load(state_action_dict_file)
+        r2_learned_state_action_distribution_dict = pickle.load(state_action_dict_file)
         r1_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
         r2_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
 
-    print "Total number of actions by agents using learned policy is %d" % sf.run_simulation(r1_state_action_distribution_dict, r2_state_action_distribution_dict, random.choice(tuple(task_start_state_set)))
+    print "Total number of actions by agents using learned policy is %d" % sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, random.choice(tuple(task_start_state_set)))
 
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
@@ -118,19 +118,20 @@ def main():
         mu_bar_prev_r1 = mu_bar_curr_r1
         mu_bar_prev_r2 = mu_bar_curr_r2
 
-    r1_state_action_distribution_dict = extract_state_action_distribution_dict(r1_state_action_dist)
+    r1_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r1_state_action_dist)
     r1_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r1_initial_state_action_dist)
-    r2_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
+
+    r2_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
     r2_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r2_initial_state_action_dist)
 
 
     lgr.debug("%s", colored("Extracting and saving argmax policy for r1 and r2 to state_action_dict.pickle", 'white', attrs = ['bold']))
     with open("state_action_dict.pickle", "wb") as state_action_dict_file:
-        pickle.dump(r1_state_action_distribution_dict, state_action_dict_file)
-        pickle.dump(r2_state_action_distribution_dict, state_action_dict_file)
+        pickle.dump(r1_learned_state_action_distribution_dict, state_action_dict_file)
+        pickle.dump(r2_learned_state_action_distribution_dict, state_action_dict_file)
         pickle.dump(r1_initial_state_action_distribution_dict, state_action_dict_file)
         pickle.dump(r2_initial_state_action_distribution_dict, state_action_dict_file)
 
 if __name__=='__main__':
-    main()
-    # simulate_learned_state_action_distribution()
+    # main()
+    simulate_learned_state_action_distribution()
