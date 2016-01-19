@@ -18,7 +18,7 @@ logging.basicConfig(format='')
 lgr = logging.getLogger("qLearning.py")
 lgr.setLevel(level=logging.INFO) # change level to debug for output
 
-def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10, alpha = 0.1, gamma = 1.0, t = 1.0):
+def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 10, temp = 1.0):
     """Function that runs the q learning algorithm for both the agents and returns the action_distribution (after softmaxing it)
     """
     lgr.debug("%s", colored("                                        TEAM_Q_LEARNING                     ", 'white', attrs = ['bold']))
@@ -30,6 +30,11 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
     r1_q[state_action_space == -np.inf] = -np.inf
     r2_q[state_action_space == -np.inf] = -np.inf
 
+    gamma = 1.0
+    alpha = 0.5
+    alpha_dec_factor = 0.99
+    alpha_lb = 0.1
+
     for episode in range(n_episodes):
         lgr.debug("%s", colored("************************************* Episode %d ****************************************************" % (episode+1), 'white', attrs = ['bold']))
         start_state = random.choice(task_start_state_set)
@@ -37,6 +42,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
         r2_state_idx = r1_state_idx
         r1_state_tup = start_state
         r2_state_tup = start_state
+        alpha = alpha_lb if alpha <= alpha_lb else alpha * alpha_dec_factor
         step = 1
 
         while True:
@@ -111,4 +117,4 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
 
         logging.debug("%s", colored("************************************* End of Episode %d ****************************************************" % (episode+1), 'white', attrs = ['bold']))
 
-    return softmax(r1_q, t), softmax(r2_q, t)
+    return softmax(r1_q, temp), softmax(r2_q, temp)

@@ -161,7 +161,7 @@ def get_feature_vector(task_state_tup, current_action):
     """ Function to compute the feature vector given the current task state vector and current action.
     """
     task_state_list = list(task_state_tup)
-    state_feature = [3 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
+    state_feature = [1 if task_state_list[0] else 0] + [1 if task_state_list[1] else 0] + task_state_list[2:]
     action_feature = [1 if action == current_action else 0 for action in task_actions_expl.keys()]
     feature_vector = state_feature + action_feature
 

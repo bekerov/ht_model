@@ -24,6 +24,20 @@ def extract_best_policy(state_action_dist):
 
     return policy
 
+def extract_state_action_distribution_dict(state_action_dist):
+    """Function to convert the numpy state_action distribution to
+    dict of dicts for comparing againts expert and random policy
+    """
+    learned_state_action_distribution_dict = dict()
+    for state_idx, task_state_tup in enumerate(task_states_list):
+        learned_task_actions = dict()
+        for action_idx in ts.task_actions_index:
+            if state_action_dist[state_idx][action_idx] != 0:
+                learned_task_actions[ts.task_actions_index[action_idx]] = state_action_dist[state_idx][action_idx]
+
+        learned_state_action_distribution_dict[task_state_tup] = learned_task_actions
+    return learned_state_action_distribution_dict
+
 def softmax(w, t = 1.0):
     """Function to calculate the softmax of a matrix, normalizing each row for probability
     """
