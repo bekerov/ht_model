@@ -12,8 +12,9 @@ from loadTaskParams import *
    state.
 """
 
-# set logging level, change to DEBUG for colored output
-logging.basicConfig(level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s')
+logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
+lgr = logging.getLogger("expertActionDistribution.py")
+lgr.setLevel(level=logging.WARN)
 
 def compute_expert_state_action_distribution_dict():
     """Function to compute expert Q value based on the processed video files.
@@ -38,8 +39,16 @@ def compute_expert_state_action_distribution_dict():
 def simulate_expert_state_action_distribution():
     r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
     r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
-    print "Total number of actions by agents using expert policy is %d" % sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, random.choice(tuple(task_start_state_set)))
+    start_state = task_start_state_set[3]
+    n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
+    lgr.info("Total number of actions by agents using expert policy is %d" % n_actions)
+    return n_actions
 
 if __name__=='__main__':
-    simulate_expert_state_action_distribution()
+    total_actions = 0
+    n_trials = 10000
+    for i in range(n_trials):
+        total_actions = total_actions + simulate_expert_state_action_distribution()
+
+    print "average_actions = ", total_actions/n_trials
 
