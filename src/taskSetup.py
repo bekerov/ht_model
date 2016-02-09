@@ -27,8 +27,8 @@ State = namedtuple("State",
             'n_h', # number of teammate's boxes on its side 0..MAX_BOXES_ACC
             't_r', # Is the robot transferring? Y/N
             't_h', # Is the teammate transferring? Y/N
-            'b_r', # Is the robot holding its box? Y/N
-            'b_h', # Is the robot holding the teammate's box? Y/N
+            'b_r', # number of robot's boxes held by the robot 0..2
+            'b_h', # number of teammate's boxes held by the robot 0..2
             'e'    # Is the task completed? Y/N
             ]
         )
@@ -71,11 +71,14 @@ def is_valid_task_state(task_state_tup):
         # total number of boxes on robot's side must be less than or equal to max number of boxes
         # accessable or zero when robot's side is sorted and robot is waiting for teammate
         return False
-    if task_state_tup.t_r == 1 and task_state_tup.b_h != 1:
-        # if the robot is transferring a box, then it must be holding the
+    if task_state_tup.t_r == 1 and task_state_tup.b_h == 0:
+        # if the robot is transferring a box, then it must be holding at least one of
         # teammate's box for the task_state_tup to be valid
         return False
-    if (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and task_state_tup.b_h == 1:
+    if task_state_tup.b_r + task_state_tup.b_h > 2:
+        # the robot cannot hold more than two boxes
+        return False
+    if (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and task_state_tup.b_h > 0:
         # if robot has all its accessible boxes then,
         # if the robot gets a box, the box was received from a teammate transfer
         # thus box in hand cannot be teammate's box
@@ -92,8 +95,8 @@ def generate_task_state_set():
             [v for v in range(MAX_BOXES_ACC+1)],
             [0, 1],
             [0, 1],
-            [0, 1],
-            [0, 1],
+            [0, 1, 2],
+            [0, 1, 2],
             [0, 1]
             ]
 
@@ -123,32 +126,28 @@ def get_valid_actions(task_state_tup):
         # robot is done with its part and can only wait for teammate to change
         # task_state_tup
         actions_list.append('WS')
-    if task_state_tup.n_r and task_state_tup.b_r == 0:
-        # if there are robot's boxes on the robots side, take it
+    if task_state_tup.n_r and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
+        # if there are robot's boxes on the robots side and the robot has a free hand, take it
         actions_list.append('TR')
-    if task_state_tup.n_h and task_state_tup.b_h == 0:
-        # if there are human's boxes on the robots side, take it
+    if task_state_tup.n_h and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
+        # if there are human's boxes on the robots side and the robot has a free hand, take it
         actions_list.append('TH')
-    if task_state_tup.b_h == 1 and task_state_tup.t_r == 1:
+    if task_state_tup.b_h > 0 and task_state_tup.t_r == 1:
         # if the robot is transferring it can wait for the teammate to receive
         actions_list.append('WG')
     if task_state_tup.t_h == 1 and ((task_state_tup.b_h + task_state_tup.b_r) < 2):
         # if the teammate is transferring then the robot can receive,
         # provided one of its hands is free
         actions_list.append('R')
-    if task_state_tup.b_r == 1:
+    if task_state_tup.b_r > 0:
         # if the robot is holding its box, it can keep
         actions_list.append('K')
-    if task_state_tup.b_h == 1 and task_state_tup.t_r == 0:
+    if task_state_tup.b_h > 0 and task_state_tup.t_r == 0:
         # if the robot is holding teammate's box, it can give
         actions_list.append('G')
     if task_state_tup.e == 1:
         # if task is done, robot can exit
         actions_list.append('X')
-
-
-# if I'm holding my book, I can put it back down
-# I number of books on my side < max_boxes_acc, I can gesture one of my book
 
     return actions_list
 
