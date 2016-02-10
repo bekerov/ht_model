@@ -45,7 +45,7 @@ def simulate_learned_state_action_distribution():
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.05
+    epsilon = 0.1
     temp = 0.9
     temp_dec_factor = 0.95
     temp_lb = 0.2
