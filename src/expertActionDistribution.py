@@ -46,7 +46,7 @@ def simulate_expert_state_action_distribution():
 
 if __name__=='__main__':
     total_actions = 0
-    n_trials = 10000
+    n_trials = 1000
     for i in range(n_trials):
         total_actions = total_actions + simulate_expert_state_action_distribution()
 
