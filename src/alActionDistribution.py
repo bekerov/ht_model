@@ -57,9 +57,6 @@ def main():
     lgr.info("First iteration does not call qlearning")
     i = 1
     while max(r1_t, r2_t) > epsilon:
-
-        lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
-
         if i == 1:
             r1_state_action_dist = r1_initial_state_action_dist
             r2_state_action_dist = r2_initial_state_action_dist
@@ -68,6 +65,7 @@ def main():
             temp = temp_lb if temp <= temp_lb else temp * temp_dec_factor
 
         if i % 10 == 1:
+            lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
             lgr.debug("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
             lgr.debug("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
             lgr.debug("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
@@ -93,7 +91,7 @@ def main():
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
-        if i % 500 == 1:
+        #if i % 500 == 1:
             # lgr.debug("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
 
             # lgr.debug("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
@@ -109,10 +107,10 @@ def main():
             # lgr.debug("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
             # lgr.debug("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
 
-            lgr.debug("%s", colored("*********************************** End of Iteration %d **************************************" % (i), 'white', attrs = ['bold']))
-            user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            if user_input.upper() == 'Q':
-                break
+            #lgr.debug("%s", colored("*********************************** End of Iteration %d **************************************" % (i), 'white', attrs = ['bold']))
+            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+            #if user_input.upper() == 'Q':
+                #break
 
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
@@ -133,5 +131,5 @@ def main():
         pickle.dump(r2_initial_state_action_distribution_dict, state_action_dict_file)
 
 if __name__=='__main__':
-    # main()
-    simulate_learned_state_action_distribution()
+    main()
+    #simulate_learned_state_action_distribution()
