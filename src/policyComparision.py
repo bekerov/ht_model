@@ -40,7 +40,7 @@ if __name__=='__main__':
             random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
             n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
 
-            n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r1_learned_state_action_distribution_dict, start_state)
+            n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state)
         lgr.info("%s", colored("Number of trials = %d" % n_trials, 'white', attrs = ['bold']))
         lgr.info("%s", colored("Metric: Number of actions per trial", 'white', attrs = ['bold']))
         lgr.info("%s", colored("Start State: %s" % str(start_state), 'magenta', attrs = ['bold']))

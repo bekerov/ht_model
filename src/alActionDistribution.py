@@ -45,7 +45,7 @@ def simulate_learned_state_action_distribution():
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.075
+    epsilon = 0.1
     temp = 0.9
     temp_dec_factor = 0.95
     temp_lb = 0.2
@@ -53,6 +53,8 @@ def main():
     r2_t = np.inf
     r1_initial_state_action_dist = compute_random_state_action_distribution()
     r2_initial_state_action_dist = compute_random_state_action_distribution()
+    r1_dists = list()
+    r2_dists = list()
 
     lgr.info("First iteration does not call qlearning")
     i = 1
@@ -63,6 +65,9 @@ def main():
         else:
             r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 50, temp = temp)
             temp = temp_lb if temp <= temp_lb else temp * temp_dec_factor
+
+        r1_dists.append(r1_state_action_dist)
+        r2_dists.append(r1_state_action_dist)
 
         if i % 10 == 1:
             lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
@@ -116,19 +121,30 @@ def main():
         mu_bar_prev_r1 = mu_bar_curr_r1
         mu_bar_prev_r2 = mu_bar_curr_r2
 
-    r1_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r1_state_action_dist)
-    r1_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r1_initial_state_action_dist)
+    # r1_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r1_state_action_dist)
+    # r1_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r1_initial_state_action_dist)
 
-    r2_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
-    r2_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r2_initial_state_action_dist)
+    # r2_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
+    # r2_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r2_initial_state_action_dist)
+    r1_policies = list()
+    r2_policies = list()
 
-    lgr.debug("%s", colored("Number of iterations: %d" % (i), 'white', attrs = ['bold']))
-    lgr.debug("%s", colored("Extracting and saving argmax policy for r1 and r2 to state_action_dict.pickle", 'white', attrs = ['bold']))
-    with open("state_action_dict.pickle", "wb") as state_action_dict_file:
-        pickle.dump(r1_learned_state_action_distribution_dict, state_action_dict_file)
-        pickle.dump(r2_learned_state_action_distribution_dict, state_action_dict_file)
-        pickle.dump(r1_initial_state_action_distribution_dict, state_action_dict_file)
-        pickle.dump(r2_initial_state_action_distribution_dict, state_action_dict_file)
+    for state_action_dist in r1_dists:
+        r1_policies.append(extract_state_action_distribution_dict(state_action_dist))
+
+    for state_action_dist in r2_dists:
+        r2_policies.append(extract_state_action_distribution_dict(state_action_dist))
+
+    lgr.debug("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
+    with open("agent_policies.pickle", "wb") as agent_policies_file:
+        pickle.dump(r1_policies, agent_policies_file)
+        pickle.dump(r2_policies, agent_policies_file)
+    # lgr.debug("%s", colored("Extracting and saving argmax policy for r1 and r2 to state_action_dict.pickle", 'white', attrs = ['bold']))
+    # with open("state_action_dict.pickle", "wb") as state_action_dict_file:
+        # pickle.dump(r1_learned_state_action_distribution_dict, state_action_dict_file)
+        # pickle.dump(r2_learned_state_action_distribution_dict, state_action_dict_file)
+        # pickle.dump(r1_initial_state_action_distribution_dict, state_action_dict_file)
+        # pickle.dump(r2_initial_state_action_distribution_dict, state_action_dict_file)
 
 if __name__=='__main__':
     main()
