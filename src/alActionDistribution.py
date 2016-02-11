@@ -120,7 +120,7 @@ def main():
         mu_bar_prev_r1 = mu_bar_curr_r1
         mu_bar_prev_r2 = mu_bar_curr_r2
 
-    lgr.info("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
+    lgr.info("%s", colored("*********************************** Iteration %d *********************************************" % (i-1), 'white', attrs = ['bold']))
     lgr.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
     lgr.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
     lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
