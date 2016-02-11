@@ -17,10 +17,9 @@ from loadTaskParams import *
 from helperFuncs import *
 
 # set up logging
-#logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
 logging.basicConfig(format='')
 lgr = logging.getLogger("alActionDistribution.py")
-lgr.setLevel(level=logging.DEBUG)
+lgr.setLevel(level=logging.INFO)
 
 def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     """Function to compute mu_bar_current using the projection forumula from Abbeel and Ng's paper page 4
@@ -45,7 +44,7 @@ def simulate_learned_state_action_distribution():
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.1
+    epsilon = 0.075
     temp = 0.9
     temp_dec_factor = 0.95
     temp_lb = 0.2
@@ -56,24 +55,26 @@ def main():
     r1_dists = list()
     r2_dists = list()
 
-    lgr.info("First iteration does not call qlearning")
+    lgr.info("%s", colored("First iteration does not call qlearning", 'white', attrs = ['bold']))
     i = 1
     while max(r1_t, r2_t) > epsilon:
         if i == 1:
             r1_state_action_dist = r1_initial_state_action_dist
             r2_state_action_dist = r2_initial_state_action_dist
         else:
-            r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = 50, temp = temp)
+            # get a random number of episodes for each run
+            n_episodes = random.randint(n_experiments, 3*n_experiments)
+            r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = n_episodes, temp = temp)
             temp = temp_lb if temp <= temp_lb else temp * temp_dec_factor
 
         r1_dists.append(r1_state_action_dist)
         r2_dists.append(r1_state_action_dist)
 
-        if i % 10 == 1:
-            lgr.debug("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
-            lgr.debug("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
-            lgr.debug("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
-            lgr.debug("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
+        if i % 25 == 1:
+            lgr.info("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
+            lgr.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
+            lgr.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
+            lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
 
         mu_curr_r1, mu_curr_r2 = mu.compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action_dist)
 
@@ -96,55 +97,45 @@ def main():
         r1_reward = np.reshape(np.dot(feature_matrix, r1_w), (n_states, ts.n_action_vars))
         r2_reward = np.reshape(np.dot(feature_matrix, r2_w), (n_states, ts.n_action_vars))
 
-        #if i % 500 == 1:
-            # lgr.debug("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
+        if i % 500 == 1:
+            if lgr.getEffectiveLevel() == logging.DEBUG:
+                lgr.debug("%s\n", colored("mu_e_normalized = %s" % (mu_e_normalized), 'green', attrs = ['bold']))
+                lgr.debug("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
+                lgr.debug("%s\n", colored("mu_curr_r2 = %s" % (mu_curr_r2), 'cyan', attrs = ['bold']))
 
-            # lgr.debug("%s", colored("mu_curr_r1 = %s" % (mu_curr_r1), 'red', attrs = ['bold']))
-            # lgr.debug("%s\n", colored("mu_curr_r2 = %s" % (mu_curr_r2), 'cyan', attrs = ['bold']))
+                lgr.debug("%s", colored("mu_bar_curr_r1 = %s" % (mu_bar_curr_r1), 'red', attrs = ['bold']))
+                lgr.debug("%s\n", colored("mu_bar_curr_r2 = %s" % (mu_bar_curr_r2), 'cyan', attrs = ['bold']))
+                lgr.debug("%s", colored("r1_w 1-norm = %s" % (np.linalg.norm(r1_w, ord = 1)), 'red', attrs = ['bold']))
+                lgr.debug("%s\n", colored("r2_w 1-norm = %s" % (np.linalg.norm(r2_w, ord = 1)), 'cyan', attrs = ['bold']))
 
-            # lgr.debug("%s", colored("mu_bar_curr_r1 = %s" % (mu_bar_curr_r1), 'red', attrs = ['bold']))
-            # lgr.debug("%s\n", colored("mu_bar_curr_r2 = %s" % (mu_bar_curr_r2), 'cyan', attrs = ['bold']))
+                lgr.debug("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
+                lgr.debug("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
+                lgr.debug("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
 
-            # lgr.debug("%s", colored("r1_w 1-norm = %s" % (np.linalg.norm(r1_w, ord = 1)), 'red', attrs = ['bold']))
-            # lgr.debug("%s\n", colored("r2_w 1-norm = %s" % (np.linalg.norm(r2_w, ord = 1)), 'cyan', attrs = ['bold']))
-
-            # lgr.debug("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
-            # lgr.debug("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
-            # lgr.debug("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
-
-            #lgr.debug("%s", colored("*********************************** End of Iteration %d **************************************" % (i), 'white', attrs = ['bold']))
-            #user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
-            #if user_input.upper() == 'Q':
-                #break
-
+                lgr.debug("%s", colored("*********************************** End of Iteration %d **************************************" % (i), 'white', attrs = ['bold']))
+                user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
+                if user_input.upper() == 'Q':
+                    break
         i = i + 1
         mu_bar_prev_r1 = mu_bar_curr_r1
         mu_bar_prev_r2 = mu_bar_curr_r2
 
-    # r1_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r1_state_action_dist)
-    # r1_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r1_initial_state_action_dist)
+    lgr.info("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
+    lgr.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
+    lgr.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
+    lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
 
-    # r2_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
-    # r2_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r2_initial_state_action_dist)
     r1_policies = list()
     r2_policies = list()
-
     for state_action_dist in r1_dists:
         r1_policies.append(extract_state_action_distribution_dict(state_action_dist))
-
     for state_action_dist in r2_dists:
         r2_policies.append(extract_state_action_distribution_dict(state_action_dist))
 
-    lgr.debug("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
+    lgr.info("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
     with open("agent_policies.pickle", "wb") as agent_policies_file:
         pickle.dump(r1_policies, agent_policies_file)
         pickle.dump(r2_policies, agent_policies_file)
-    # lgr.debug("%s", colored("Extracting and saving argmax policy for r1 and r2 to state_action_dict.pickle", 'white', attrs = ['bold']))
-    # with open("state_action_dict.pickle", "wb") as state_action_dict_file:
-        # pickle.dump(r1_learned_state_action_distribution_dict, state_action_dict_file)
-        # pickle.dump(r2_learned_state_action_distribution_dict, state_action_dict_file)
-        # pickle.dump(r1_initial_state_action_distribution_dict, state_action_dict_file)
-        # pickle.dump(r2_initial_state_action_distribution_dict, state_action_dict_file)
 
 if __name__=='__main__':
     main()
