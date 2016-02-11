@@ -45,7 +45,7 @@ def simulate_learned_state_action_distribution():
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.1
+    epsilon = 0.075
     temp = 0.9
     temp_dec_factor = 0.95
     temp_lb = 0.2
@@ -122,7 +122,7 @@ def main():
     r2_learned_state_action_distribution_dict = extract_state_action_distribution_dict(r2_state_action_dist)
     r2_initial_state_action_distribution_dict = extract_state_action_distribution_dict(r2_initial_state_action_dist)
 
-
+    lgr.debug("%s", colored("Number of iterations: %d" % (i), 'white', attrs = ['bold']))
     lgr.debug("%s", colored("Extracting and saving argmax policy for r1 and r2 to state_action_dict.pickle", 'white', attrs = ['bold']))
     with open("state_action_dict.pickle", "wb") as state_action_dict_file:
         pickle.dump(r1_learned_state_action_distribution_dict, state_action_dict_file)

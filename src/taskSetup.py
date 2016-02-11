@@ -130,7 +130,7 @@ def get_valid_actions(task_state_tup):
     if task_state_tup.n_r and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
         # if there are robot's boxes on the robots side and the robot has a free hand, take it
         actions_list.append('TR')
-    if task_state_tup.n_h and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
+    if task_state_tup.n_h and ((task_state_tup.b_r + task_state_tup.b_h) < 2) and task_state_tup.t_r == 0:
         # if there are human's boxes on the robots side and the robot has a free hand, take it
         actions_list.append('TH')
     if task_state_tup.b_h > 0 and task_state_tup.t_r == 1:
