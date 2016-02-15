@@ -32,7 +32,7 @@ if __name__=='__main__':
         r1_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
         r2_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
 
-    for start_state in task_start_state_set:
+    for start_state in task_start_states_list:
         for i in range(n_trials):
             expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
             n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)

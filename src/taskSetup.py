@@ -53,7 +53,7 @@ n_action_vars = len(task_actions_expl)
 # A class to hold task param indices to index into task params list after reading
 class TaskParams:
     task_states_list = 0
-    task_start_state_set = 1
+    task_start_states_list = 1
     task_state_action_dict = 2
     feature_matrix = 3
     expert_visited_states_set = 4
@@ -103,7 +103,7 @@ def generate_task_state_set():
 
     # generate the task_states and possible_task_states
     task_states_list = list()
-    task_start_states_set = list()
+    task_start_states_list = list()
     for vector in product(*options):
         task_state_tup = State(*vector)
         if is_valid_task_state(task_state_tup):
@@ -112,12 +112,12 @@ def generate_task_state_set():
 
             if task_state_tup.n_r != MAX_BOXES_ACC and (task_state_tup.n_r + task_state_tup.n_h) == MAX_BOXES_ACC and all (v == 0 for v in task_state_tup[2:]):
                 # check if the task_state_tup is a start_state, if it is add it to list
-                task_start_states_set.append(task_state_tup)
+                task_start_states_list.append(task_state_tup)
 
     logging.info("Total number states (after pruning) for box color sort task: %d", len(task_states_list))
-    logging.info("Total number of possible start states: %d", len(task_start_states_set))
+    logging.info("Total number of possible start states: %d", len(task_start_states_list))
 
-    return task_states_list, task_start_states_set
+    return task_states_list, task_start_states_list
 
 def get_valid_actions(task_state_tup):
     """Function to determine possible actions that can be taken in the given task state
@@ -187,7 +187,7 @@ def generate_feature_matrix(task_states_list):
             feature_matrix[state_idx * n_action_vars + action_idx] = feature_vector
     return feature_matrix
 
-def load_experiment_data(task_states_list, task_start_state_set):
+def load_experiment_data(task_states_list, task_start_states_list):
     """Function to read exert data files (after manual video processed) and extract visited states, taken actions and feature expectation
     """
     expert_visited_states_set = set()
@@ -219,7 +219,7 @@ def load_experiment_data(task_states_list, task_start_state_set):
                 task_state_tup = State(*map(int, fields[1:-1]))
 
                 if time_step == 0: # check for valid start state
-                    if task_state_tup not in task_start_state_set:
+                    if task_state_tup not in task_start_states_list:
                         logging.error("expert_file_name: %s", expert_file_name)
                         logging.error("Line: %d", time_step+3)
                         logging.error("State: \n%s", task_state_print(task_state_tup))
@@ -257,13 +257,13 @@ def load_experiment_data(task_states_list, task_start_state_set):
 def write_task_parameters():
     """Function to generate task parameters (states set, state_action dict, feature matrix), convert non numpy structs to numpy and dump to the task_parameters pickle file
     """
-    task_states_list, task_start_state_set = generate_task_state_set()
+    task_states_list, task_start_states_list = generate_task_state_set()
     task_state_action_dict = generate_task_state_action_dict(task_states_list)
 
     feature_matrix = generate_feature_matrix(task_states_list)
-    expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_list, task_start_state_set)
+    expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step = load_experiment_data(task_states_list, task_start_states_list)
 
-    task_params = [task_states_list, task_start_state_set, task_state_action_dict, feature_matrix, expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step]
+    task_params = [task_states_list, task_start_states_list, task_state_action_dict, feature_matrix, expert_visited_states_set, expert_state_action_dict, expert_feature_expectation, n_files_read, time_per_step]
 
     with open(task_parameters_file, "wb") as params_file:
         pickle.dump(task_params, params_file)

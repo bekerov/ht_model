@@ -8,7 +8,7 @@ import taskSetup as ts
 # load task params from pickle file
 task_params = ts.load_task_parameters()
 task_states_list = task_params[ts.TaskParams.task_states_list]
-task_start_state_set = task_params[ts.TaskParams.task_start_state_set]
+task_start_states_list = task_params[ts.TaskParams.task_start_states_list]
 task_state_action_dict = task_params[ts.TaskParams.task_state_action_dict]
 feature_matrix = task_params[ts.TaskParams.feature_matrix]
 expert_visited_states_set = task_params[ts.TaskParams.expert_visited_states_set]

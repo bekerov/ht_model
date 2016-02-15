@@ -12,9 +12,6 @@ from scipy import stats
 import simulationFunctions as sf
 from loadTaskParams import *
 
-def locate_min(a):
-    smallest = min(a)
-    return smallest, [index for index, element in enumerate(a) if smallest == element]
 
 if __name__=='__main__':
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
@@ -26,7 +23,7 @@ if __name__=='__main__':
     all_modes = list()
     best_policy_list = list()
 
-    for start_state in task_start_state_set:
+    for start_state in task_start_states_list:
         modes = list()
         for policy_idx in range(len(r1_dists_dict)):
             r1_learned_state_action_distribution_dict = r1_dists_dict[policy_idx]
@@ -45,10 +42,8 @@ if __name__=='__main__':
     best_policy_indices = set([idx for policy_list in best_policy_list for idx in policy_list])
     print len(r1_dists_dict), len(best_policy_indices)
 
-    with open("best_state_action_dicts.pickle", "wb") as best_state_action_dicts_file:
 
-
-    for i in range(len(task_start_state_set)):
+    for i in range(len(task_start_states_list)):
         plt.subplot(2, 2, i+1)
         plt.plot(range(len(r1_dists_dict)), all_modes[i], 'ro')
         l = min(all_modes[i])
@@ -57,7 +52,7 @@ if __name__=='__main__':
         lb = l - d
         ub = u + d
         plt.axis([0, len(r1_dists_dict), lb, ub])
-        plt.title('Start State: %s' % str(task_start_state_set[i]))
+        plt.title('Start State: %s' % str(task_start_states_list[i]))
         plt.xlabel('Policy Number')
         plt.ylabel('Mode Value')
         plt.grid()

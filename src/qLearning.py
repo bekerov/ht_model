@@ -37,7 +37,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
 
     for episode in range(n_episodes):
         lgr.debug("%s", colored("************************************* Episode %d ****************************************************" % (episode+1), 'white', attrs = ['bold']))
-        start_state = random.choice(task_start_state_set)
+        start_state = random.choice(task_start_states_list)
         r1_state_idx = task_states_list.index(start_state)
         r2_state_idx = r1_state_idx
         r1_state_tup = start_state

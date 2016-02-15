@@ -39,7 +39,7 @@ def compute_expert_state_action_distribution_dict():
 def simulate_expert_state_action_distribution():
     r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
     r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
-    start_state = task_start_state_set[3]
+    start_state = task_start_states_list[3]
     n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
     lgr.info("Total number of actions by agents using expert policy is %d" % n_actions)
     return n_actions

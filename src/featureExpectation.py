@@ -32,7 +32,7 @@ def compute_normalized_feature_expectation(r1_state_action_dist, r2_state_action
 
     for i in range(n_experiments):
         lgr.debug("%s", colored("************************************* Trial %d ****************************************************" % (i), 'white', attrs = ['bold']))
-        start_state = random.choice(task_start_state_set)
+        start_state = random.choice(task_start_states_list)
         r1_state_idx = task_states_list.index(start_state)
         r2_state_idx = r1_state_idx
         r1_state_tup = start_state
