@@ -11,6 +11,11 @@ from scipy import stats
 import simulationFunctions as sf
 from loadTaskParams import *
 
+
+def locate_min(a):
+    smallest = min(a)
+    return smallest, [index for index, element in enumerate(a) if smallest == element]
+
 if __name__=='__main__':
     n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     n_actions_learned = np.zeros(n_trials)
@@ -19,9 +24,9 @@ if __name__=='__main__':
         r2_policies = pickle.load(agent_policies_file)
 
     all_modes = list()
+    best_policies = list()
 
     for start_state in task_start_state_set:
-        start_state = task_start_state_set[0]
         modes = list()
         for policy_idx in range(len(r1_policies)):
             r1_learned_state_action_distribution_dict = r1_policies[policy_idx]
@@ -31,6 +36,12 @@ if __name__=='__main__':
                 n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state)
             modes.append(stats.mode(n_actions_learned)[0][0])
         all_modes.append(modes)
+        smallest, policy_indices = locate_min(modes)
+        print "Start State: ", start_state
+        print "Smallest mode: ", smallest
+        print "policy_indices", policy_indices
+        best_policies.append(policy_indices)
+
 
     for i in range(len(task_start_state_set)):
         plt.subplot(2, 2, i+1)

@@ -55,7 +55,7 @@ def main():
     r1_dists = list()
     r2_dists = list()
 
-    lgr.info("%s", colored("First iteration does not call qlearning", 'white', attrs = ['bold']))
+    lgr.debug("%s", colored("First iteration does not call qlearning", 'white', attrs = ['bold']))
     i = 1
     while max(r1_t, r2_t) > epsilon:
         if i == 1:

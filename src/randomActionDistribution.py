@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import pprint
@@ -32,6 +33,7 @@ def simulate_random_state_action_distribution():
     """Function to simulate a random action distribution for both the agents
     """
     r1_state_action_distribution_dict = compute_random_state_action_distribution_dict()
+    sys.exit()
     r2_state_action_distribution_dict = compute_random_state_action_distribution_dict()
     start_state = task_start_state_set[0]
     n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)

@@ -31,7 +31,7 @@ def team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_re
     r2_q[state_action_space == -np.inf] = -np.inf
 
     gamma = 1.0
-    alpha = 0.5
+    alpha = 0.9
     alpha_dec_factor = 0.99
     alpha_lb = 0.1
 
