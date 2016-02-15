@@ -44,14 +44,19 @@ def simulate_learned_state_action_distribution():
 def main():
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
+
     epsilon = 0.075
+
     temp = 0.9
     temp_dec_factor = 0.95
     temp_lb = 0.2
+
     r1_t = np.inf
     r2_t = np.inf
-    r1_initial_state_action_dist = compute_random_state_action_distribution()
-    r2_initial_state_action_dist = compute_random_state_action_distribution()
+
+    r1_initial_state_action_dist = compute_uniform_state_action_distribution()
+    r2_initial_state_action_dist = compute_uniform_state_action_distribution()
+
     r1_dists = list()
     r2_dists = list()
 
@@ -125,17 +130,18 @@ def main():
     lgr.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
     lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
 
-    r1_policies = list()
-    r2_policies = list()
+    r1_dists_dict = list()
+    r2_dists_dict = list()
+
     for state_action_dist in r1_dists:
-        r1_policies.append(extract_state_action_distribution_dict(state_action_dist))
+        r1_dists_dict.append(extract_state_action_distribution_dict(state_action_dist))
     for state_action_dist in r2_dists:
-        r2_policies.append(extract_state_action_distribution_dict(state_action_dist))
+        r2_dists_dict.append(extract_state_action_distribution_dict(state_action_dist))
 
     lgr.info("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
-    with open("agent_policies.pickle", "wb") as agent_policies_file:
-        pickle.dump(r1_policies, agent_policies_file)
-        pickle.dump(r2_policies, agent_policies_file)
+    with open("agent_dists_dict.pickle", "wb") as agent_dists_dict_file:
+        pickle.dump(r1_dists_dict, agent_dists_dict_file)
+        pickle.dump(r2_dists_dict, agent_dists_dict_file)
 
 if __name__=='__main__':
     main()
