@@ -26,13 +26,14 @@ if __name__=='__main__':
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
     n_actions_learned = np.zeros(n_trials)
-    with open("state_action_dict.pickle", "r") as state_action_dict_file:
-        r1_learned_state_action_distribution_dict = pickle.load(state_action_dict_file)
-        r2_learned_state_action_distribution_dict = pickle.load(state_action_dict_file)
-        r1_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
-        r2_initial_state_action_distribution_dict = pickle.load(state_action_dict_file)
+    with open("agent_best_dists_dict.pickle", "r") as state_action_dict_file:
+        r1_best_dists_dict = pickle.load(state_action_dict_file)
+        r2_best_dists_dict = pickle.load(state_action_dict_file)
 
     for start_state in task_start_states_list:
+        r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict)
+        r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict)
+
         for i in range(n_trials):
             expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
             n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
