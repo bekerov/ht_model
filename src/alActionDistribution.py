@@ -22,7 +22,7 @@ logging.basicConfig(format='')
 lgr = logging.getLogger("alActionDistribution.py")
 lgr.setLevel(level=logging.INFO)
 
-MAX_BEST_STATE_ACTION_DISTS = 5
+MAX_BEST_STATE_ACTION_DISTS = 10
 
 def locate_min(a):
     """Function to compute the smallest in an array and get all the indicies with the
