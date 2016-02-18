@@ -22,6 +22,8 @@ logging.basicConfig(format='')
 lgr = logging.getLogger("alActionDistribution.py")
 lgr.setLevel(level=logging.INFO)
 
+MAX_BEST_STATE_ACTION_DISTS = 5
+
 def locate_min(a):
     """Function to compute the smallest in an array and get all the indicies with the
     smallest value
@@ -152,9 +154,8 @@ if __name__=='__main__':
     lgr.info("\n%s", colored("Searching for best policy based on least number of actions for %d trials" % n_trials, 'white', attrs = ['bold']))
 
     n_actions_learned = np.zeros(n_trials)
-    all_modes = list()
-    best_policy_list = list()
-    for start_state in task_start_states_list[:-1]:
+    best_state_action_dist_indices_dict = dict()
+    for start_state in task_start_states_list:
         modes = list()
         for policy_idx in range(len(r1_dists_dict)):
             r1_learned_state_action_distribution_dict = r1_dists_dict[policy_idx]
@@ -163,21 +164,25 @@ if __name__=='__main__':
             for i in range(n_trials):
                 n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state)
             modes.append(stats.mode(n_actions_learned)[0][0])
-        all_modes.append(modes)
         smallest, policy_indices = locate_min(modes)
-        best_policy_list.append(policy_indices)
+        best_state_action_dist_indices_dict[start_state] = policy_indices
         lgr.info("%s", colored("Start State: %s" % str(start_state), 'yellow', attrs = ['bold']))
         lgr.info("%s", colored("Smallest mode: %d" % smallest, 'white', attrs = ['bold']))
         lgr.info("%s", colored("Policy indices %s" % str(policy_indices), 'white', attrs = ['bold']))
 
-    best_policy_indices = set([idx for policy_list in best_policy_list for idx in policy_list])
+    r1_best_dists_dict = dict()
+    r2_best_dists_dict = dict()
 
-    r1_best_dists_dict = list()
-    r2_best_dists_dict = list()
-
-    for idx in best_policy_indices:
-        r1_best_dists_dict.append(r1_dists_dict[idx])
-        r2_best_dists_dict.append(r2_dists_dict[idx])
+    for start_state, best_state_action_dist_indices_list in best_state_action_dist_indices_dict.items():
+        r1_best_dists_dict[start_state] = list()
+        r2_best_dists_dict[start_state] = list()
+        if len(best_state_action_dist_indices_list) > MAX_BEST_STATE_ACTION_DISTS:
+            best_state_action_dists_indices = random.sample(best_state_action_dist_indices_list, MAX_BEST_STATE_ACTION_DISTS)
+        else:
+            best_state_action_dists_indices = best_state_action_dist_indices_list
+        for idx in best_state_action_dists_indices:
+            r1_best_dists_dict[start_state].append(r1_dists_dict[idx])
+            r2_best_dists_dict[start_state].append(r2_dists_dict[idx])
 
     lgr.info("%s", colored("Saving best distribution for both agents as dictionaries in agents_best_dists_dict.pickle" , 'white', attrs = ['bold']))
     with open("agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:

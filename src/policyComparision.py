@@ -31,8 +31,8 @@ if __name__=='__main__':
         r2_best_dists_dict = pickle.load(state_action_dict_file)
 
     for start_state in task_start_states_list:
-        r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict)
-        r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict)
+        r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
+        r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
 
         for i in range(n_trials):
             expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
