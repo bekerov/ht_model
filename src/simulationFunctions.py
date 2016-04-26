@@ -12,7 +12,7 @@ import taskSetup as ts
 
 logging.basicConfig(format='')
 lgr = logging.getLogger("simulationFunctions.py")
-lgr.setLevel(level=logging.WARN)
+lgr.setLevel(level=logging.INFO)
 #fh = logging.FileHandler('temp.log')
 #fh.setLevel(level=logging.DEBUG)
 #fh.setFormatter(logging.Formatter(''))

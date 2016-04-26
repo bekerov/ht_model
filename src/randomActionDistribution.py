@@ -13,7 +13,7 @@ from loadTaskParams import *
 """
 logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
 lgr = logging.getLogger("expertActionDistribution.py")
-lgr.setLevel(level=logging.WARN)
+lgr.setLevel(level=logging.INFO)
 
 def compute_random_state_action_distribution_dict():
     """Function to compute a random distribution for actions for each task state
