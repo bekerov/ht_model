@@ -193,7 +193,7 @@ if __name__=='__main__':
                 r1_best_dists_dict[start_state].append(r1_dists_dict[idx])
                 r2_best_dists_dict[start_state].append(r2_dists_dict[idx])
 
-        lgr.info("%s", colored("Saving best distribution for both agents as dictionaries in agents_best_dists_dict.pickle" , 'white', attrs = ['bold']))
+        lgr.info("%s", colored("Saving best distribution for both agents as dictionaries in r1_agent_best_dists_dict.pickle and r2_agent_best_dists_dict.pickle" , 'white', attrs = ['bold']))
         with open("r1_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
             pickle.dump(r1_best_dists_dict, agent_best_dists_dict_file)
         with open("r2_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
