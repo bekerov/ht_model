@@ -84,7 +84,7 @@ def get_agent_dists():
         r1_dists.append(r1_state_action_dist)
         r2_dists.append(r1_state_action_dist)
 
-        if i % 25 == 1:
+        if i % 50 == 1:
             lgr.info("%s", colored("*********************************** Iteration %d *********************************************" % (i), 'white', attrs = ['bold']))
             lgr.info("%s", colored("r1_t = %s" % (r1_t), 'red', attrs = ['bold']))
             lgr.info("%s", colored("r2_t = %s" % (r2_t), 'cyan', attrs = ['bold']))
