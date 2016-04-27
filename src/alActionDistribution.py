@@ -43,9 +43,11 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
 def simulate_learned_state_action_distribution():
     """Function to simulate AL learned action distribution for both the agents
     """
-    #with open("state_action_dict.pickle", "r") as state_action_dict_file:
-    with open("agent_best_dists_dict.pickle", "r") as state_action_dict_file:
+    lgr.info("Loading agent 1 best distribution dictionary")
+    with open("r1_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
         r1_best_dists_dict = pickle.load(state_action_dict_file)
+    lgr.info("Loading agent 2 best distribution dictionary")
+    with open("r2_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
         r2_best_dists_dict = pickle.load(state_action_dict_file)
 
     start_state = random.choice(task_start_states_list)
@@ -192,8 +194,9 @@ if __name__=='__main__':
                 r2_best_dists_dict[start_state].append(r2_dists_dict[idx])
 
         lgr.info("%s", colored("Saving best distribution for both agents as dictionaries in agents_best_dists_dict.pickle" , 'white', attrs = ['bold']))
-        with open("agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
+        with open("r1_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
             pickle.dump(r1_best_dists_dict, agent_best_dists_dict_file)
+        with open("r2_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
             pickle.dump(r2_best_dists_dict, agent_best_dists_dict_file)
     else:
         simulate_learned_state_action_distribution()
