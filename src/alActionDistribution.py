@@ -145,7 +145,7 @@ def learn_agent_dists():
 
     return r1_dists, r2_dists
 
-if __name__=='__main__':
+if __name__ == '__main__':
     if len(sys.argv) < 2:
         lgr.error("Usage: %s s(simulate)|l(learn)", sys.argv[0])
         sys.exit()

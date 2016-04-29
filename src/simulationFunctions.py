@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import random
 import logging
 
@@ -14,7 +15,7 @@ from loadTaskParams import *
 
 logging.basicConfig(format='')
 lgr = logging.getLogger("simulationFunctions.py")
-lgr.setLevel(level=logging.WARN)
+lgr.setLevel(level=logging.INFO)
 
 def simulate_next_state(current_action, my_current_state, teammate_current_state):
     my_next_state = my_current_state
@@ -98,6 +99,5 @@ def run_simulation(r1_dist, r2_dist, start_state):
             user_input = raw_input('Press Enter to continue, Q-Enter to quit\n')
             if user_input.upper() == 'Q':
                 break
-
     return n_actions
 
