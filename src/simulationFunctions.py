@@ -14,32 +14,7 @@ from loadTaskParams import *
 
 logging.basicConfig(format='')
 lgr = logging.getLogger("simulationFunctions.py")
-lgr.setLevel(level=logging.INFO)
-
-def verify_action_selection(pi, state):
-    """Function to verify whether select_random_action_dict function works and selects action according to uniform probability distribution
-    """
-    counts = dict()
-    for i in range(10000):
-        action = select_random_action_dict(pi[state])
-        if action not in counts:
-            counts[action] = 1
-        else:
-            counts[action] = counts[action] + 1
-    counts = {k: float(v)/total for total in (sum(counts.values()),) for k, v in counts.items()}
-    print pi[state]
-    print counts
-
-def select_random_action_dict(state_action_distribution_dict):
-   """Function to randomly select action given a probability distribution relative to the probability of the action being taken
-   """
-   r = random.random()
-   upto = 0
-   for action, probs in state_action_distribution_dict.items():
-      if upto + probs >= r:
-         return action
-      upto += probs
-   assert False, "Shouldn't get here"
+lgr.setLevel(level=logging.WARN)
 
 def simulate_next_state(current_action, my_current_state, teammate_current_state):
     my_next_state = my_current_state
@@ -86,19 +61,17 @@ def simulate_next_state(current_action, my_current_state, teammate_current_state
 
     return my_next_state, teammate_next_state
 
-#def run_simulation(r1_state_action_distribution_dict, r2_state_action_distribution_dict, start_state):
 def run_simulation(r1_dist, r2_dist, start_state):
+    """
+        Function to run the simulation based on the start state and the agent's distributions
+    """
     r1_state_tup = start_state
     r2_state_tup = start_state
     n_actions = 0
     while True:
         n_actions = n_actions + 1
-        #lgr.debug("%s", colored("Agent 1 available actions: %s" % str(r1_state_action_distribution_dict[r1_state_tup]), 'red', attrs = ['bold']))
-        #lgr.debug("%s\n", colored("Agent 2 available actions: %s" % str(r2_state_action_distribution_dict[r2_state_tup]), 'cyan', attrs = ['bold']))
         r1_action = select_random_action(r1_dist[task_states_list.index(r1_state_tup)])
         r2_action = select_random_action(r2_dist[task_states_list.index(r2_state_tup)])
-        #r1_action = select_random_action_dict(r1_state_action_distribution_dict[r1_state_tup])
-        #r2_action = select_random_action_dict(r2_state_action_distribution_dict[r2_state_tup])
         r1_p = r1_state_tup
         r2_p = r2_state_tup
 
@@ -127,3 +100,4 @@ def run_simulation(r1_dist, r2_dist, start_state):
                 break
 
     return n_actions
+

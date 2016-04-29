@@ -51,9 +51,8 @@ def simulate_learned_state_action_distribution():
     start_state = random.choice(task_start_states_list)
     r1_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r1_best_dists[start_state]))
     r2_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r2_best_dists[start_state]))
-    #lgr.info("Total number of actions by agents using least actions policy is %d", sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state))
-    lgr.info("Total number of actions by agents using least actions policy is %d", sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state))
-    lgr.info("Start state: %s", str(start_state))
+    lgr.info("%s", colored("Total number of actions by agents using least actions policy is %d" % sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state), 'white', attrs = ['bold']))
+    lgr.info("%s", colored("Start State: %s" % str(start_state), 'white', attrs = ['bold']))
 
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
