@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
+import sys
 import random
 import logging
 
 import simulationFunctions as sf
 
+from helperFuncs import convert_to_numpy_from_dict
 from loadTaskParams import *
 
 """This module creates an expert action distribution for the box color sort task
@@ -14,7 +16,7 @@ from loadTaskParams import *
 
 logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
 lgr = logging.getLogger("expertActionDistribution.py")
-lgr.setLevel(level=logging.WARN)
+lgr.setLevel(level=logging.INFO)
 
 def compute_expert_state_action_distribution_dict():
     """Function to compute expert Q value based on the processed video files.
@@ -37,18 +39,22 @@ def compute_expert_state_action_distribution_dict():
 
 
 def simulate_expert_state_action_distribution():
-    r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
-    r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
+    #r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
+    #r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
+    #start_state = task_start_states_list[3]
+    #n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
+    r1_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
+    r2_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
     start_state = task_start_states_list[3]
-    n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
-    lgr.info("Total number of actions by agents using expert policy is %d" % n_actions)
+    n_actions = sf.run_simulation(r1_dist, r2_dist, start_state)
+    lgr.debug("Total number of actions by agents using expert policy is %d" % n_actions)
     return n_actions
 
 if __name__=='__main__':
     total_actions = 0
-    n_trials = 1
+    n_trials = int(sys.argv[1]) if len(sys.argv) == 2 else 100
     for i in range(n_trials):
         total_actions = total_actions + simulate_expert_state_action_distribution()
 
-    print "average_actions = ", total_actions/n_trials
+    lgr.info("average_actions = %0.2f", float(total_actions)/n_trials)
 
