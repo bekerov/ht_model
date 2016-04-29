@@ -39,10 +39,6 @@ def compute_expert_state_action_distribution_dict():
 
 
 def simulate_expert_state_action_distribution():
-    #r1_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
-    #r2_state_action_distribution_dict = compute_expert_state_action_distribution_dict()
-    #start_state = task_start_states_list[3]
-    #n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
     r1_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
     r2_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
     start_state = task_start_states_list[3]

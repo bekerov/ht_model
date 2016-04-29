@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import logging
 import random
 import pprint
@@ -7,44 +8,30 @@ import cPickle as pickle
 
 import simulationFunctions as sf
 
+from helperFuncs import compute_random_state_action_distribution
 from loadTaskParams import *
 
 """This module creates an random action distribution for the box color sort task.
 """
 logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
-lgr = logging.getLogger("expertActionDistribution.py")
+lgr = logging.getLogger("randomActionDistribution.py")
 lgr.setLevel(level=logging.INFO)
-
-def compute_random_state_action_distribution_dict():
-    """Function to compute a random distribution for actions for each task state
-    """
-    random_state_action_distribution_dict = dict()
-    for task_state_tup, actions_dict in task_state_action_dict.items():
-        random_actions = dict()
-        for action in actions_dict:
-            #random_actions[action] = 1.0/len(actions_dict)
-            random_actions[action] = random.random()
-        random_actions = {k: float(v)/total for total in (sum(random_actions.values()),) for k, v in random_actions.items()}
-        random_state_action_distribution_dict[task_state_tup] = random_actions
-
-    return random_state_action_distribution_dict
 
 def simulate_random_state_action_distribution():
     """Function to simulate a random action distribution for both the agents
     """
-    r1_state_action_distribution_dict = compute_random_state_action_distribution_dict()
-    r2_state_action_distribution_dict = compute_random_state_action_distribution_dict()
+    r1_dist = compute_random_state_action_distribution()
+    r2_dist = compute_random_state_action_distribution()
     start_state = task_start_states_list[0]
-    n_actions = sf.run_simulation(r1_state_action_distribution_dict,r2_state_action_distribution_dict, start_state)
-    lgr.info("Total number of actions by agents using expert policy is %d" % n_actions)
+    n_actions = sf.run_simulation(r1_dist, r2_dist, start_state)
+    lgr.debug("Total number of actions by agents using expert policy is %d" % n_actions)
     return n_actions
 
 if __name__=='__main__':
     total_actions = 0
-    n_trials = 100
+    n_trials = int(sys.argv[1]) if len(sys.argv) == 2 else 100
     for i in range(n_trials):
         total_actions = total_actions + simulate_random_state_action_distribution()
 
-    print "average_actions = ", total_actions/n_trials
-
+    lgr.info("average_actions = %0.2f", float(total_actions)/n_trials)
 

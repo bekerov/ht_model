@@ -8,8 +8,16 @@ from loadTaskParams import *
 def compute_uniform_state_action_distribution():
     """Function to compute a unform state action distribution
     """
-    #random_state_action_dist = np.random.rand(n_states, ts.n_action_vars)
     random_state_action_dist = np.ones((n_states, ts.n_action_vars))
+    random_state_action_dist[state_action_space == -np.inf] = 0
+    random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1)) # normalize each row
+
+    return random_state_action_dist
+
+def compute_random_state_action_distribution():
+    """Function to compute a random state action distribution
+    """
+    random_state_action_dist = np.random.rand(n_states, ts.n_action_vars)
     random_state_action_dist[state_action_space == -np.inf] = 0
     random_state_action_dist = random_state_action_dist / random_state_action_dist.sum(axis=1).reshape((len(random_state_action_dist), 1)) # normalize each row
 
