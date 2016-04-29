@@ -6,6 +6,8 @@ import logging
 from termcolor import colored
 
 import taskSetup as ts
+from helperFuncs import select_random_action
+from loadTaskParams import *
 
 """This module contains the functions for simulating the box color sort task between two agents
 """
@@ -91,10 +93,12 @@ def run_simulation(r1_dist, r2_dist, start_state):
     n_actions = 0
     while True:
         n_actions = n_actions + 1
-        lgr.debug("%s", colored("Agent 1 available actions: %s" % str(r1_state_action_distribution_dict[r1_state_tup]), 'red', attrs = ['bold']))
-        lgr.debug("%s\n", colored("Agent 2 available actions: %s" % str(r2_state_action_distribution_dict[r2_state_tup]), 'cyan', attrs = ['bold']))
-        r1_action = select_random_action_dict(r1_state_action_distribution_dict[r1_state_tup])
-        r2_action = select_random_action_dict(r2_state_action_distribution_dict[r2_state_tup])
+        #lgr.debug("%s", colored("Agent 1 available actions: %s" % str(r1_state_action_distribution_dict[r1_state_tup]), 'red', attrs = ['bold']))
+        #lgr.debug("%s\n", colored("Agent 2 available actions: %s" % str(r2_state_action_distribution_dict[r2_state_tup]), 'cyan', attrs = ['bold']))
+        r1_action = select_random_action(r1_dist[task_states_list.index(r1_state_tup)])
+        r2_action = select_random_action(r2_dist[task_states_list.index(r2_state_tup)])
+        #r1_action = select_random_action_dict(r1_state_action_distribution_dict[r1_state_tup])
+        #r2_action = select_random_action_dict(r2_state_action_distribution_dict[r2_state_tup])
         r1_p = r1_state_tup
         r2_p = r2_state_tup
 
