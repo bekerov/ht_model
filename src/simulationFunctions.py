@@ -12,14 +12,14 @@ import taskSetup as ts
 
 logging.basicConfig(format='')
 lgr = logging.getLogger("simulationFunctions.py")
-lgr.setLevel(level=logging.WARN)
+lgr.setLevel(level=logging.INFO)
 
 def verify_action_selection(pi, state):
-    """Function to verify whether select_random_action function works and selects action according to uniform probability distribution
+    """Function to verify whether select_random_action_dict function works and selects action according to uniform probability distribution
     """
     counts = dict()
     for i in range(10000):
-        action = select_random_action(pi[state])
+        action = select_random_action_dict(pi[state])
         if action not in counts:
             counts[action] = 1
         else:
@@ -28,7 +28,7 @@ def verify_action_selection(pi, state):
     print pi[state]
     print counts
 
-def select_random_action(state_action_distribution_dict):
+def select_random_action_dict(state_action_distribution_dict):
    """Function to randomly select action given a probability distribution relative to the probability of the action being taken
    """
    r = random.random()
@@ -84,7 +84,8 @@ def simulate_next_state(current_action, my_current_state, teammate_current_state
 
     return my_next_state, teammate_next_state
 
-def run_simulation(r1_state_action_distribution_dict, r2_state_action_distribution_dict, start_state):
+#def run_simulation(r1_state_action_distribution_dict, r2_state_action_distribution_dict, start_state):
+def run_simulation(r1_dist, r2_dist, start_state):
     r1_state_tup = start_state
     r2_state_tup = start_state
     n_actions = 0
@@ -92,8 +93,8 @@ def run_simulation(r1_state_action_distribution_dict, r2_state_action_distributi
         n_actions = n_actions + 1
         lgr.debug("%s", colored("Agent 1 available actions: %s" % str(r1_state_action_distribution_dict[r1_state_tup]), 'red', attrs = ['bold']))
         lgr.debug("%s\n", colored("Agent 2 available actions: %s" % str(r2_state_action_distribution_dict[r2_state_tup]), 'cyan', attrs = ['bold']))
-        r1_action = select_random_action(r1_state_action_distribution_dict[r1_state_tup])
-        r2_action = select_random_action(r2_state_action_distribution_dict[r2_state_tup])
+        r1_action = select_random_action_dict(r1_state_action_distribution_dict[r1_state_tup])
+        r2_action = select_random_action_dict(r2_state_action_distribution_dict[r2_state_tup])
         r1_p = r1_state_tup
         r2_p = r2_state_tup
 

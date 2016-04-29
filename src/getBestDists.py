@@ -19,17 +19,24 @@ from helperFuncs import *
 
 # set up logging
 logging.basicConfig(format='')
-lgr = logging.getLogger("extractPolicy.py")
+lgr = logging.getLogger("getBestDists.py")
 lgr.setLevel(level=logging.INFO)
 
-if __name__ == "__main__":
+MAX_BEST_STATE_ACTION_DISTS = 10
+
+def getBestDists(n_trials = 100):
+    lgr.info("Loading dists.pickle file")
     with open("dists.pickle", "r") as dists_file:
         r1_dists = pickle.load(dists_file)
         r2_dists = pickle.load(dists_file)
 
-    n_trials = 100
     n_actions_learned = np.zeros(n_trials)
+    r1_best_dists = dict()
+    r2_best_dists = dict()
+    lgr.info("Running simulation amongst %d state action distribution for getting the top 10 with lowest number of actions for various start states", len(r1_dists))
     for start_state in task_start_states_list:
+        r1_best_dists[start_state] = list()
+        r2_best_dists[start_state] = list()
         modes = np.zeros(len(r1_dists))
         for state_action_dist_idx in range(len(r1_dists)):
             r1_dist = r1_dists[state_action_dist_idx]
@@ -45,17 +52,25 @@ if __name__ == "__main__":
             assert(np.array_equal(r1_dist, convert_to_numpy_from_dict(r1_learned_state_action_distribution_dict)))
             assert(np.array_equal(r2_dist, convert_to_numpy_from_dict(r2_learned_state_action_distribution_dict)))
         best_indices = np.where(modes == modes.min())[0]
+
+        if len(best_indices) > MAX_BEST_STATE_ACTION_DISTS:
+            best_indices = np.random.choice(best_indices, MAX_BEST_STATE_ACTION_DISTS, replace = False)
+
         lgr.info("%s", colored("Start State: %s" % str(start_state), 'yellow', attrs = ['bold']))
         lgr.info("%s", colored("Smallest mode: %d" % modes.min(), 'white', attrs = ['bold']))
         lgr.info("%s", colored("Policy indices %s" % str(best_indices), 'white', attrs = ['bold']))
-    #t = extract_best_policy_dict_from_numpy(r1_dists[0])
-    #q = convert_to_dict_from_numpy(r1_dists[1])
-    #pprint.pprint(t)
-    #pprint.pprint(q)
-    #s = ts.State(n_r=3, n_h=0, t_r=0, t_h=1, b_r=1, b_h=0, e=0)
-    #print t[s], q[s]
-    #tidx = task_states_list.index(s)
-    #print task_states_list[tidx], t[s], q[s], select_random_action(r1_dists[0][tidx])
-    #print r1_dists[0][tidx]
-    #n = convert_to_numpy_from_dict(q)
-    #assert(np.array_equal(r1_dists[1], n))
+
+        for best_idx in np.nditer(best_indices):
+            r1_best_dists[start_state].append(r1_dists[best_idx])
+            r2_best_dists[start_state].append(r2_dists[best_idx])
+
+    lgr.info("Writing the start state to best numpy distribution list dictionary to best_dists.pickle")
+    with open("best_dists.pickle", "wb") as best_dists_file:
+        pickle.dump(r1_best_dists, best_dists_file)
+        pickle.dump(r2_best_dists, best_dists_file)
+
+if __name__ == "__main__":
+    np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
+    n_trials = int(sys.argv[1]) if len(sys.argv) > 1 else 100
+    getBestDists(n_trials)
+

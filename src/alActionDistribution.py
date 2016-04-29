@@ -43,19 +43,19 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
 def simulate_learned_state_action_distribution():
     """Function to simulate AL learned action distribution for both the agents
     """
-    lgr.info("Loading agent 1 best distribution dictionary")
-    with open("r1_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        r1_best_dists_dict = pickle.load(state_action_dict_file)
-    lgr.info("Loading agent 2 best distribution dictionary")
-    with open("r2_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        r2_best_dists_dict = pickle.load(state_action_dict_file)
+    lgr.info("Loading best distributions for all start states from best_dists.pickle")
+    with open("best_dists.pickle", "r") as best_dists_file:
+        r1_best_dists = pickle.load(best_dists_file)
+        r2_best_dists = pickle.load(best_dists_file)
 
     start_state = random.choice(task_start_states_list)
-    r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
-    r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
-    print "Total number of actions by agents using least actions policy is %d" % sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, random.choice(tuple(task_start_states_list)))
+    r1_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r1_best_dists[start_state]))
+    r2_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r2_best_dists[start_state]))
+    #lgr.info("Total number of actions by agents using least actions policy is %d", sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state))
+    lgr.info("Total number of actions by agents using least actions policy is %d", sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state))
+    lgr.info("Start state: %s", str(start_state))
 
-def get_agent_dists():
+def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
     epsilon = 0.075
     temp = 0.9
@@ -140,61 +140,20 @@ def get_agent_dists():
     lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
     lgr.info("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
 
-    r1_dists_dict = list()
-    r2_dists_dict = list()
-
-    #for state_action_dist in r1_dists:
-        #r1_dists_dict.append(convert_to_dict_from_numpy(state_action_dist))
-    #for state_action_dist in r2_dists:
-        #r2_dists_dict.append(convert_to_dict_from_numpy(state_action_dist))
-
-    #return r1_dists_dict, r2_dists_dict
-    return r1_dists, r2_dists
-
-if __name__=='__main__':
-    np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
-    r1_dists, r2_dists = get_agent_dists()
     with open("dists.pickle", "wb") as dists_file:
         pickle.dump(r1_dists, dists_file)
         pickle.dump(r2_dists, dists_file)
 
-    #lgr.info("\n%s", colored("Searching for best policy based on least number of actions for %d trials" % n_trials, 'white', attrs = ['bold']))
+    return r1_dists, r2_dists
 
-    #n_actions_learned = np.zeros(n_trials)
-    #best_state_action_dist_indices_dict = dict()
-    #for start_state in task_start_states_list:
-        #modes = list()
-        #for policy_idx in range(len(r1_dists_dict)):
-            #r1_learned_state_action_distribution_dict = r1_dists_dict[policy_idx]
-            #r2_learned_state_action_distribution_dict = r2_dists_dict[policy_idx]
+if __name__=='__main__':
+    if len(sys.argv) < 2:
+        lgr.error("Usage: %s s(simulate)|l(learn)", sys.argv[0])
+        sys.exit()
+    np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
 
-            #for i in range(n_trials):
-                #n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state)
-            #modes.append(stats.mode(n_actions_learned)[0][0])
-        #smallest, policy_indices = locate_min(modes)
-        #best_state_action_dist_indices_dict[start_state] = policy_indices
-        #lgr.info("%s", colored("Start State: %s" % str(start_state), 'yellow', attrs = ['bold']))
-        #lgr.info("%s", colored("Smallest mode: %d" % smallest, 'white', attrs = ['bold']))
-        #lgr.info("%s", colored("Policy indices %s" % str(policy_indices), 'white', attrs = ['bold']))
-
-    #r1_best_dists_dict = dict()
-    #r2_best_dists_dict = dict()
-
-    #for start_state, best_state_action_dist_indices_list in best_state_action_dist_indices_dict.items():
-        #r1_best_dists_dict[start_state] = list()
-        #r2_best_dists_dict[start_state] = list()
-        #if len(best_state_action_dist_indices_list) > MAX_BEST_STATE_ACTION_DISTS:
-            #best_state_action_dists_indices = random.sample(best_state_action_dist_indices_list, MAX_BEST_STATE_ACTION_DISTS)
-        #else:
-            #best_state_action_dists_indices = best_state_action_dist_indices_list
-        #for idx in best_state_action_dists_indices:
-            #r1_best_dists_dict[start_state].append(r1_dists_dict[idx])
-            #r2_best_dists_dict[start_state].append(r2_dists_dict[idx])
-
-    #lgr.info("%s", colored("Saving best distribution for both agents as dictionaries in r1_agent_best_dists_dict.pickle and r2_agent_best_dists_dict.pickle" , 'white', attrs = ['bold']))
-    #with open("r1_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
-        #pickle.dump(r1_best_dists_dict, agent_best_dists_dict_file)
-    #with open("r2_agent_best_dists_dict.pickle", "wb") as agent_best_dists_dict_file:
-        #pickle.dump(r2_best_dists_dict, agent_best_dists_dict_file)
-    #simulate_learned_state_action_distribution()
+    if sys.argv[1] == 'l':
+        learn_agent_dists()
+    else:
+        simulate_learned_state_action_distribution()
 
