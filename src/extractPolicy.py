@@ -24,17 +24,18 @@ lgr.setLevel(level=logging.INFO)
 
 if __name__ == "__main__":
     lgr.info("Loading agent 1 best distribution dictionary")
-    with open("r1_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        r1_best_dists_dict = pickle.load(state_action_dict_file)
-    lgr.info("Loading agent 2 best distribution dictionary")
-    with open("r2_agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        r2_best_dists_dict = pickle.load(state_action_dict_file)
+    with open("dists.pickle", "r") as dists_file:
+        r1_dists = pickle.load(dists_file)
+        r2_dists = pickle.load(dists_file)
 
-    #start_state = random.choice(task_start_states_list)
-    for start_state in task_start_states_list:
-        lgr.info("start_state = %s", start_state)
-        r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
-        r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
-
-        lgr.info("len(r1) = %d, len(r2) = %d", len(r1_learned_state_action_distribution_dict), len(r1_learned_state_action_distribution_dict))
-
+    t = extract_best_policy_dict_from_numpy(r1_dists[0])
+    q = convert_to_dict_from_numpy(r1_dists[1])
+    #pprint.pprint(t)
+    #pprint.pprint(q)
+    s = ts.State(n_r=3, n_h=0, t_r=0, t_h=1, b_r=1, b_h=0, e=0)
+    #print t[s], q[s]
+    tidx = task_states_list.index(s)
+    #print task_states_list[tidx], t[s], q[s], select_random_action(r1_dists[0][tidx])
+    #print r1_dists[0][tidx]
+    n = convert_to_numpy_from_dict(q)
+    print np.array_equal(r1_dists[1], n)

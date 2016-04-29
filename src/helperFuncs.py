@@ -15,7 +15,7 @@ def compute_uniform_state_action_distribution():
 
     return random_state_action_dist
 
-def extract_best_policy(state_action_dist):
+def extract_best_policy_dict_from_numpy(state_action_dist):
     """Function to extract the policy from q_value matrix using argmax
     """
     policy = dict()
@@ -25,7 +25,7 @@ def extract_best_policy(state_action_dist):
 
     return policy
 
-def extract_state_action_distribution_dict(state_action_dist):
+def convert_to_dict_from_numpy(state_action_dist):
     """Function to convert the numpy state_action distribution to
     dict of dicts for comparing againts expert and random policy
     """
@@ -38,6 +38,21 @@ def extract_state_action_distribution_dict(state_action_dist):
 
         learned_state_action_distribution_dict[task_state_tup] = learned_task_actions
     return learned_state_action_distribution_dict
+
+def convert_to_numpy_from_dict(state_action_distribution_dict):
+    """
+        Function to convert state action distribution in dictionary format
+        to a state action distribution numpy matrix
+    """
+    state_action_dist = np.zeros((len(task_states_list), ts.n_action_vars))
+    for task_state_tup, actions_prob in state_action_distribution_dict.items():
+        action_vector = np.zeros(ts.n_action_vars)
+        for action, prob in actions_prob.items():
+            action_idx = ts.task_actions_expl[action][0]
+            action_vector[action_idx] = prob
+        state_action_dist[task_states_list.index(task_state_tup)] = action_vector
+
+    return state_action_dist
 
 def softmax(w, t = 1.0):
     """Function to calculate the softmax of a matrix, normalizing each row for probability

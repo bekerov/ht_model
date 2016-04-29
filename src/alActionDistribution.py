@@ -144,9 +144,9 @@ def get_agent_dists():
     r2_dists_dict = list()
 
     #for state_action_dist in r1_dists:
-        #r1_dists_dict.append(extract_state_action_distribution_dict(state_action_dist))
+        #r1_dists_dict.append(convert_to_dict_from_numpy(state_action_dist))
     #for state_action_dist in r2_dists:
-        #r2_dists_dict.append(extract_state_action_distribution_dict(state_action_dist))
+        #r2_dists_dict.append(convert_to_dict_from_numpy(state_action_dist))
 
     #return r1_dists_dict, r2_dists_dict
     return r1_dists, r2_dists
