@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 from termcolor import colored
 from scipy import stats
 
-import randomActionDistribution
-import expertActionDistribution
+import expertActionDistribution as ex
 import simulationFunctions as sf
 
+from helperFuncs import compute_random_state_action_distribution
 from loadTaskParams import *
 
 logging.basicConfig(format='')
@@ -26,22 +26,27 @@ if __name__=='__main__':
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
     n_actions_learned = np.zeros(n_trials)
-    with open("agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        r1_best_dists_dict = pickle.load(state_action_dict_file)
-        r2_best_dists_dict = pickle.load(state_action_dict_file)
+    with open("best_dists.pickle", "r") as best_dists_file:
+        r1_best_dists = pickle.load(best_dists_file)
+        r2_best_dists = pickle.load(best_dists_file)
+    #with open("agent_best_dists_dict.pickle", "r") as state_action_dict_file:
+        #r1_best_dists_dict = pickle.load(state_action_dict_file)
+        #r2_best_dists_dict = pickle.load(state_action_dict_file)
 
     for start_state in task_start_states_list:
-        r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
-        r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
+        r1_best_dist = random.choice(r1_best_dists[start_state])
+        r2_best_dist = random.choice(r2_best_dists[start_state])
+        #r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
+        #r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
 
         for i in range(n_trials):
-            expert_state_action_distribution_dict = expertActionDistribution.compute_expert_state_action_distribution_dict()
-            n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution_dict, expert_state_action_distribution_dict, start_state)
+            expert_state_action_distribution = ex.compute_expert_state_action_distribution()
+            n_actions_expert[i] = sf.run_simulation(expert_state_action_distribution, expert_state_action_distribution, start_state)
 
-            random_state_action_distribution_dict = randomActionDistribution.compute_random_state_action_distribution_dict()
-            n_actions_random[i] = sf.run_simulation(random_state_action_distribution_dict, random_state_action_distribution_dict, start_state)
+            random_state_action_distribution = compute_random_state_action_distribution()
+            n_actions_random[i] = sf.run_simulation(random_state_action_distribution, random_state_action_distribution, start_state)
 
-            n_actions_learned[i] = sf.run_simulation(r1_learned_state_action_distribution_dict, r2_learned_state_action_distribution_dict, start_state)
+            n_actions_learned[i] = sf.run_simulation(r1_best_dist, r2_best_dist, start_state)
         lgr.info("%s", colored("Number of trials = %d" % n_trials, 'white', attrs = ['bold']))
         lgr.info("%s", colored("Metric: Number of actions per trial", 'white', attrs = ['bold']))
         lgr.info("%s", colored("Start State: %s" % str(start_state), 'magenta', attrs = ['bold']))

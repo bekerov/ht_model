@@ -18,7 +18,7 @@ logging.basicConfig(format='%(asctime)s-%(levelname)s: %(message)s')
 lgr = logging.getLogger("expertActionDistribution.py")
 lgr.setLevel(level=logging.INFO)
 
-def compute_expert_state_action_distribution_dict():
+def compute_expert_state_action_distribution():
     """Function to compute expert Q value based on the processed video files.
        Note: It is likely that the experts don't visit all the possible states in the state space, thus for states not visited by experts we assign an action based on a uniform distribution for that state. For states visited by experts, assign values for actions based on their frequency.
     """
@@ -35,12 +35,12 @@ def compute_expert_state_action_distribution_dict():
         actions_dict = {k: float(v)/total for total in (sum(expert_actions.values()),) for k, v in expert_actions.items()}
         expert_state_action_distribution_dict[task_state_tup] = actions_dict
 
-    return expert_state_action_distribution_dict
+    return convert_to_numpy_from_dict(expert_state_action_distribution_dict)
 
 
 def simulate_expert_state_action_distribution():
-    r1_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
-    r2_dist = convert_to_numpy_from_dict(compute_expert_state_action_distribution_dict())
+    r1_dist = compute_expert_state_action_distribution()
+    r2_dist = compute_expert_state_action_distribution()
     start_state = task_start_states_list[3]
     n_actions = sf.run_simulation(r1_dist, r2_dist, start_state)
     lgr.debug("Total number of actions by agents using expert policy is %d" % n_actions)
