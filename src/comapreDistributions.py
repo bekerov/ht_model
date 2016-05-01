@@ -18,7 +18,7 @@ from helperFuncs import compute_random_state_action_distribution
 from loadTaskParams import *
 
 logging.basicConfig(format='')
-lgr = logging.getLogger("policyComparision.py")
+lgr = logging.getLogger("compareDistributions.py")
 lgr.setLevel(level=logging.INFO)
 
 if __name__=='__main__':
@@ -26,18 +26,14 @@ if __name__=='__main__':
     n_actions_expert = np.zeros(n_trials)
     n_actions_random = np.zeros(n_trials)
     n_actions_learned = np.zeros(n_trials)
+    lgr.info("Loading best_dists.pickle file")
     with open("best_dists.pickle", "r") as best_dists_file:
         r1_best_dists = pickle.load(best_dists_file)
         r2_best_dists = pickle.load(best_dists_file)
-    #with open("agent_best_dists_dict.pickle", "r") as state_action_dict_file:
-        #r1_best_dists_dict = pickle.load(state_action_dict_file)
-        #r2_best_dists_dict = pickle.load(state_action_dict_file)
 
     for start_state in task_start_states_list:
         r1_best_dist = random.choice(r1_best_dists[start_state])
         r2_best_dist = random.choice(r2_best_dists[start_state])
-        #r1_learned_state_action_distribution_dict = random.choice(r1_best_dists_dict[start_state])
-        #r2_learned_state_action_distribution_dict = random.choice(r2_best_dists_dict[start_state])
 
         for i in range(n_trials):
             expert_state_action_distribution = ex.compute_expert_state_action_distribution()
