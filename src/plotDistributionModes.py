@@ -24,6 +24,7 @@ if __name__=='__main__':
     lgr.info("Loading modes.pickle file")
     with open("modes.pickle", "r") as modes_file:
         all_modes = pickle.load(modes_file)
+        n_trials = pickle.load(modes_file)
 
     for i in range(len(task_start_states_list)):
         plt.subplot(2, 2, i+1)

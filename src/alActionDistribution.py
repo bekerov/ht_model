@@ -40,23 +40,17 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
 
     return mu_bar_curr
 
-def simulate_learned_state_action_distribution():
+def simulate_learned_state_action_distribution(r1_best_dists, r2_best_dists):
     """Function to simulate AL learned action distribution for both the agents
     """
-    lgr.info("Loading best distributions for all start states from best_dists.pickle")
-    with open("best_dists.pickle", "r") as best_dists_file:
-        r1_best_dists = pickle.load(best_dists_file)
-        r2_best_dists = pickle.load(best_dists_file)
-
     start_state = random.choice(task_start_states_list)
-    r1_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r1_best_dists[start_state]))
-    r2_learned_state_action_distribution_dict = convert_to_dict_from_numpy(random.choice(r2_best_dists[start_state]))
-    lgr.info("%s", colored("Total number of actions by agents using least actions policy is %d" % sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state), 'white', attrs = ['bold']))
-    lgr.info("%s", colored("Start State: %s" % str(start_state), 'yellow', attrs = ['bold']))
+    n_actions = sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state)
+    lgr.debug("Total number of actions by agents using least actions policy is %d" % n_actions)
+    return n_actions
 
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.07
+    epsilon = 0.05
     temp = 1.0
     temp_dec_factor = 0.99
     temp_lb = 0.1
@@ -68,7 +62,7 @@ def learn_agent_dists():
     r1_dists = list()
     r2_dists = list()
 
-    lgr.debug("%s", colored("First iteration does not call qlearning", 'white', attrs = ['bold']))
+    lgr.info("%s", colored("First iteration does not call qlearning, epsilon = %0.1f" % epsilon, 'white', attrs = ['bold']))
     i = 1
     while max(r1_t, r2_t) > epsilon:
         if i == 1:
@@ -76,7 +70,7 @@ def learn_agent_dists():
             r2_state_action_dist = r2_initial_state_action_dist
         else:
             # get a gaussian random number of episodes for each run with mean the average of 3*n_experiemnts std_dev n_experiments
-            n_episodes = int(math.ceil(random.gauss((3*n_experiments), n_experiments)))
+            n_episodes = int(math.ceil(random.gauss((5*n_experiments), n_experiments)))
             lgr.debug("%s", colored("Running qlearning for %d episodes" % n_episodes, 'blue', attrs = ['bold']))
             r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = n_episodes, temp = temp)
             temp = temp_lb if temp <= temp_lb else temp * temp_dec_factor
@@ -155,5 +149,13 @@ if __name__ == '__main__':
     if sys.argv[1] == 'l':
         learn_agent_dists()
     else:
-        simulate_learned_state_action_distribution()
+        n_trials = 100
+        total_actions = 0
+        lgr.info("Loading best distributions for all start states from best_dists.pickle")
+        with open("best_dists.pickle", "r") as best_dists_file:
+            r1_best_dists = pickle.load(best_dists_file)
+            r2_best_dists = pickle.load(best_dists_file)
+        for _ in range(n_trials):
+            total_actions = total_actions + simulate_learned_state_action_distribution(r1_best_dists, r2_best_dists)
+        lgr.info("average_actions = %0.2f", float(total_actions)/n_trials)
 

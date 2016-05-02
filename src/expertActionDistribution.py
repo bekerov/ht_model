@@ -49,7 +49,7 @@ def simulate_expert_state_action_distribution():
 if __name__=='__main__':
     total_actions = 0
     n_trials = int(sys.argv[1]) if len(sys.argv) == 2 else 100
-    for i in range(n_trials):
+    for _ in range(n_trials):
         total_actions = total_actions + simulate_expert_state_action_distribution()
 
     lgr.info("average_actions = %0.2f", float(total_actions)/n_trials)
