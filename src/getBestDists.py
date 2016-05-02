@@ -30,6 +30,7 @@ def getBestDists(n_trials = 100):
     n_actions_learned = np.zeros(n_trials)
     r1_best_dists = dict()
     r2_best_dists = dict()
+    all_modes = list()
     lgr.info("Running simulation amongst %d state action distribution for getting the top 10 with lowest number of actions for various start states", len(r1_dists))
     for start_state in task_start_states_list:
         r1_best_dists[start_state] = list()
@@ -43,6 +44,7 @@ def getBestDists(n_trials = 100):
             modes[state_action_dist_idx] = stats.mode(n_actions_learned)[0][0]
 
         best_indices = np.where(modes == modes.min())[0]
+        all_modes.append(modes)
         if len(best_indices) > MAX_BEST_STATE_ACTION_DISTS:
             best_indices = np.random.choice(best_indices, MAX_BEST_STATE_ACTION_DISTS, replace = False)
 
@@ -58,6 +60,10 @@ def getBestDists(n_trials = 100):
     with open("best_dists.pickle", "wb") as best_dists_file:
         pickle.dump(r1_best_dists, best_dists_file)
         pickle.dump(r2_best_dists, best_dists_file)
+
+    lgr.info("Writing modes.pickle file")
+    with open("modes.pickle", "wb") as modes_file:
+        pickle.dump(all_modes, modes_file)
 
 if __name__ == "__main__":
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)

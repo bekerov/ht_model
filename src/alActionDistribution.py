@@ -56,7 +56,7 @@ def simulate_learned_state_action_distribution():
 
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.075
+    epsilon = 0.07
     temp = 1.0
     temp_dec_factor = 0.99
     temp_lb = 0.1
