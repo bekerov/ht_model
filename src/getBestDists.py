@@ -3,7 +3,6 @@
 import sys
 import logging
 import random
-import pprint
 import numpy as np
 import cPickle as pickle
 
@@ -31,7 +30,7 @@ def getBestDists(n_trials = 100):
     r1_best_dists = dict()
     r2_best_dists = dict()
     all_modes = list()
-    lgr.info("Running simulation amongst %d state action distribution for getting the top 10 with lowest number of actions for various start states", len(r1_dists))
+    lgr.info("%s", colored("Running simulation amongst %d state action distribution for getting the top 10 with lowest number of actions for various start states for %d trials" % (len(r1_dists), n_trials), 'white', attrs = ['bold']))
     for start_state in task_start_states_list:
         r1_best_dists[start_state] = list()
         r2_best_dists[start_state] = list()
@@ -64,6 +63,7 @@ def getBestDists(n_trials = 100):
     lgr.info("Writing modes.pickle file")
     with open("modes.pickle", "wb") as modes_file:
         pickle.dump(all_modes, modes_file)
+        pickle.dump(n_trials, modes_file)
 
 if __name__ == "__main__":
     np.set_printoptions(formatter={'float': '{: 0.3f}'.format}, threshold=np.nan)
