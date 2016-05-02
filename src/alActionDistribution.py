@@ -3,7 +3,7 @@
 import sys
 import logging
 import random
-import pprint
+import math
 import numpy as np
 import cPickle as pickle
 
@@ -57,9 +57,9 @@ def simulate_learned_state_action_distribution():
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
     epsilon = 0.075
-    temp = 0.9
-    temp_dec_factor = 0.95
-    temp_lb = 0.2
+    temp = 1.0
+    temp_dec_factor = 0.99
+    temp_lb = 0.1
     r1_t = np.inf
     r2_t = np.inf
     r1_initial_state_action_dist = compute_uniform_state_action_distribution()
@@ -75,8 +75,9 @@ def learn_agent_dists():
             r1_state_action_dist = r1_initial_state_action_dist
             r2_state_action_dist = r2_initial_state_action_dist
         else:
-            # get a random number of episodes for each run
-            n_episodes = random.randint(n_experiments, 3*n_experiments)
+            # get a gaussian random number of episodes for each run with mean the average of 3*n_experiemnts std_dev n_experiments
+            n_episodes = int(math.ceil(random.gauss((3*n_experiments), n_experiments)))
+            lgr.debug("%s", colored("Running qlearning for %d episodes" % n_episodes, 'blue', attrs = ['bold']))
             r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = n_episodes, temp = temp)
             temp = temp_lb if temp <= temp_lb else temp * temp_dec_factor
 
