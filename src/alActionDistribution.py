@@ -24,13 +24,6 @@ lgr.setLevel(level=logging.INFO)
 
 MAX_BEST_STATE_ACTION_DISTS = 10
 
-def locate_min(a):
-    """Function to compute the smallest in an array and get all the indicies with the
-    smallest value
-    """
-    smallest = min(a)
-    return smallest, [index for index, element in enumerate(a) if smallest == element]
-
 def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
     """Function to compute mu_bar_current using the projection forumula from Abbeel and Ng's paper page 4
     """
