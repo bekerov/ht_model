@@ -43,7 +43,7 @@ def simulate_learned_state_action_distribution(r1_best_dists, r2_best_dists):
 
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.05
+    epsilon = 0.06
     temp = 1.0
     temp_dec_factor = 0.99
     temp_lb = 0.1
@@ -55,7 +55,7 @@ def learn_agent_dists():
     r1_dists = list()
     r2_dists = list()
 
-    lgr.info("%s", colored("First iteration does not call qlearning, epsilon = %0.1f" % epsilon, 'white', attrs = ['bold']))
+    lgr.info("%s", colored("First iteration does not call qlearning, epsilon = %f" % epsilon, 'white', attrs = ['bold']))
     i = 1
     while max(r1_t, r2_t) > epsilon:
         if i == 1:
