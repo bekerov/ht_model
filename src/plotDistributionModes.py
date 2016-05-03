@@ -22,7 +22,7 @@ lgr.setLevel(level=logging.INFO)
 
 if __name__=='__main__':
     lgr.info("Loading modes.pickle file")
-    with open("modes.pickle", "r") as modes_file:
+    with open("../pickles/modes.pickle", "r") as modes_file:
         all_modes = pickle.load(modes_file)
         n_trials = pickle.load(modes_file)
 

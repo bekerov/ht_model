@@ -27,7 +27,7 @@ if __name__=='__main__':
     n_actions_random = np.zeros(n_trials)
     n_actions_learned = np.zeros(n_trials)
     lgr.info("Loading best_dists.pickle file")
-    with open("best_dists.pickle", "r") as best_dists_file:
+    with open("../pickles/best_dists.pickle", "r") as best_dists_file:
         r1_best_dists = pickle.load(best_dists_file)
         r2_best_dists = pickle.load(best_dists_file)
 

@@ -20,7 +20,7 @@ MAX_BOXES = 8
 MAX_BOXES_ACC = MAX_BOXES/2
 
 expert_data_files_dir = "../data/sample"
-task_parameters_file = "../data/task_parameters.pickle"
+task_parameters_file = "../pickles/task_parameters.pickle"
 
 State = namedtuple("State",
         [   'n_r', # number of robot's boxes on its side 0..MAX_BOXES_ACC

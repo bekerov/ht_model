@@ -22,7 +22,7 @@ MAX_BEST_STATE_ACTION_DISTS = 10
 
 def getBestDists(n_trials = 100):
     lgr.info("Loading dists.pickle file")
-    with open("dists.pickle", "r") as dists_file:
+    with open("../pickles/dists.pickle", "r") as dists_file:
         r1_dists = pickle.load(dists_file)
         r2_dists = pickle.load(dists_file)
 
@@ -56,12 +56,12 @@ def getBestDists(n_trials = 100):
             r2_best_dists[start_state].append(r2_dists[best_idx])
 
     lgr.info("Writing the start state to best numpy distribution list dictionary to best_dists.pickle")
-    with open("best_dists.pickle", "wb") as best_dists_file:
+    with open("../pickles/best_dists.pickle", "wb") as best_dists_file:
         pickle.dump(r1_best_dists, best_dists_file)
         pickle.dump(r2_best_dists, best_dists_file)
 
     lgr.info("Writing modes.pickle file")
-    with open("modes.pickle", "wb") as modes_file:
+    with open("../pickles/modes.pickle", "wb") as modes_file:
         pickle.dump(all_modes, modes_file)
         pickle.dump(n_trials, modes_file)
 

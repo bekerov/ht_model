@@ -127,7 +127,7 @@ def learn_agent_dists():
     lgr.info("%s", colored("max(r1_t, r2_t) = %s" % (max(r1_t, r2_t)), 'green', attrs = ['bold']))
     lgr.info("%s", colored("Number of iterations: %d" % (i-1), 'white', attrs = ['bold']))
 
-    with open("dists.pickle", "wb") as dists_file:
+    with open("../pickles/dists.pickle", "wb") as dists_file:
         pickle.dump(r1_dists, dists_file)
         pickle.dump(r2_dists, dists_file)
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
         n_trials = 100
         total_actions = 0
         lgr.info("Loading best distributions for all start states from best_dists.pickle")
-        with open("best_dists.pickle", "r") as best_dists_file:
+        with open("../pickles/best_dists.pickle", "r") as best_dists_file:
             r1_best_dists = pickle.load(best_dists_file)
             r2_best_dists = pickle.load(best_dists_file)
         for _ in range(n_trials):
