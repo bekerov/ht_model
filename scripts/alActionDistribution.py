@@ -142,7 +142,8 @@ if __name__ == '__main__':
     if sys.argv[1] == 'l':
         learn_agent_dists()
     else:
-        n_trials = 100
+        n_trials = int(sys.argv[2]) if len(sys.argv) == 3 else 100
+        lgr.info("Number of trials = %d", n_trials)
         total_actions = 0
         lgr.info("Loading best distributions for all start states from best_dists.pickle")
         with open("../pickles/best_dists.pickle", "r") as best_dists_file:
