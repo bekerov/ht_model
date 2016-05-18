@@ -44,10 +44,9 @@ task_actions_expl = {
         'WG': (5, 'Wait for teammate to receive'),
         'WS': (6, 'Wait for state change'),
         'X' : (7, 'Exit task'),
-        'KB': (8, 'Keep teammate box back at source')
         }
 # dictionary which maps index to action key
-task_actions_index = { 0: 'TR', 1: 'K', 2: 'R', 3: 'TH', 4: 'G', 5: 'WG', 6: 'WS', 7: 'X', 8: 'KB' }
+task_actions_index = { 0: 'TR', 1: 'K', 2: 'R', 3: 'TH', 4: 'G', 5: 'WG', 6: 'WS', 7: 'X' }
 n_action_vars = len(task_actions_expl)
 
 # A class to hold task param indices to index into task params list after reading
@@ -127,8 +126,10 @@ def get_valid_actions(task_state_tup):
         # robot is done with its part and can only wait for teammate to change
         # task_state_tup
         actions_list.append('WS')
-    if task_state_tup.n_r and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
-        # if there are robot's boxes on the robots side and the robot has a free hand, take it
+    # if task_state_tup.n_r and ((task_state_tup.b_r + task_state_tup.b_h) < 2):
+    if task_state_tup.n_r and task_state_tup.b_h == 0 and task_state_tup.b_r < 2:
+        #### if there are robot's boxes on the robots side and the robot has a free hand, take it
+        # if there are robot's boxes on the robots side and the robot is not holding a human's bo and robot has free hand, take it
         actions_list.append('TR')
     if task_state_tup.n_h and ((task_state_tup.b_r + task_state_tup.b_h) < 2) and task_state_tup.t_r == 0:
         # if there are human's boxes on the robots side and the robot has a free hand, take it
@@ -149,10 +150,10 @@ def get_valid_actions(task_state_tup):
     if task_state_tup.e == 1:
         # if task is done, robot can exit
         actions_list.append('X')
-    if task_state_tup.b_h == 2 and task_state_tup.t_h == 1 and task_state_tup.t_r == 1:
-        # if robot is holding teammate's boxes on both hands and teammate is transferring
-        # allow the robot to place the book back at source in order to receive the transferred box
-        actions_list.append('KB')
+    # if task_state_tup.b_h == 2 and task_state_tup.t_h == 1 and task_state_tup.t_r == 1:
+        # # if robot is holding teammate's boxes on both hands and teammate is transferring
+        # # allow the robot to place the book back at source in order to receive the transferred box
+        # actions_list.append('KB')
 
     return actions_list
 

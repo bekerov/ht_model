@@ -49,10 +49,10 @@ def simulate_next_state(current_action, my_current_state, teammate_current_state
         my_next_state = ts.State(my_current_state.n_r, my_current_state.n_h, my_current_state.t_r, 0, my_current_state.b_r+1, my_current_state.b_h, my_current_state.e)
         teammate_next_state = ts.State(teammate_current_state.n_r, teammate_current_state.n_h, 0, teammate_current_state.t_h, teammate_current_state.b_r, teammate_current_state.b_h-1, teammate_current_state.e)
 
-    if current_action == 'KB':
-        # if current action is keep human box back at source, increment human box count and
-        # make one hand free
-        my_next_state = ts.State(my_current_state.n_r, my_current_state.n_h+1, my_current_state.t_r, my_current_state.t_h, my_current_state.b_r, my_current_state.b_h-1, my_current_state.e)
+    # if current_action == 'KB':
+        # # if current action is keep human box back at source, increment human box count and
+        # # make one hand free
+        # my_next_state = ts.State(my_current_state.n_r, my_current_state.n_h+1, my_current_state.t_r, my_current_state.t_h, my_current_state.b_r, my_current_state.b_h-1, my_current_state.e)
 
     if (sum(list(my_current_state)) + sum(list(teammate_current_state))) == 0:
         # if all the states are zero for both, then both are waiting
