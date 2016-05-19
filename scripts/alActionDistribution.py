@@ -43,7 +43,7 @@ def simulate_learned_state_action_distribution(r1_best_dists, r2_best_dists):
 
 def learn_agent_dists():
     mu_e_normalized = expert_feature_expectation/np.linalg.norm(expert_feature_expectation, ord = 1)
-    epsilon = 0.06
+    epsilon = 0.05
     temp = 1.0
     temp_dec_factor = 0.99
     temp_lb = 0.1
@@ -62,7 +62,7 @@ def learn_agent_dists():
             r1_state_action_dist = r1_initial_state_action_dist
             r2_state_action_dist = r2_initial_state_action_dist
         else:
-            # get a gaussian random number of episodes for each run with mean the average of 3*n_experiemnts std_dev n_experiments
+            # get a gaussian random number of episodes for each run with mean the average of 5*n_experiemnts std_dev n_experiments
             n_episodes = int(math.ceil(random.gauss((5*n_experiments), n_experiments)))
             lgr.debug("%s", colored("Running qlearning for %d episodes" % n_episodes, 'blue', attrs = ['bold']))
             r1_state_action_dist, r2_state_action_dist = ql.team_q_learning(r1_state_action_dist, r1_reward, r2_state_action_dist, r2_reward, n_episodes = n_episodes, temp = temp)
