@@ -15,7 +15,7 @@ from loadTaskParams import *
 
 logging.basicConfig(format='')
 lgr = logging.getLogger("simulationFunctions.py")
-lgr.setLevel(level=logging.INFO)
+lgr.setLevel(level=logging.WARN)
 
 def simulate_next_state(current_action, my_current_state, teammate_current_state):
     my_next_state = my_current_state
