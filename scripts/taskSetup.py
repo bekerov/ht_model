@@ -36,7 +36,7 @@ n_state_vars = 7
 
 # dictionary which maps index to an action key to a tuple containing an index and explanation for the action
 task_actions_expl = {
-        'TR': (0, 'Take robot\'s box from table'),
+        'TR': (0, 'Take own box from table'),
         'K' : (1, 'Keep box on table'),
         'R' : (2, 'Receive box from teammate'),
         'TH': (3, 'Take teammate\'s box from table'),
