@@ -36,7 +36,8 @@ def compute_mu_bar_curr(mu_e, mu_bar_prev, mu_curr):
 def simulate_learned_state_action_distribution(r1_best_dists, r2_best_dists):
     """Function to simulate AL learned action distribution for both the agents
     """
-    start_state = random.choice(task_start_states_list)
+    #start_state = random.choice(task_start_states_list)
+    start_state = task_start_states_list[3]
     n_actions = sf.run_simulation(random.choice(r1_best_dists[start_state]), random.choice(r2_best_dists[start_state]), start_state)
     lgr.debug("Total number of actions by agents using least actions policy is %d" % n_actions)
     return n_actions

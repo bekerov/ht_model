@@ -3,6 +3,7 @@
 import sys
 import random
 import logging
+import cPickle as pickle
 
 import simulationFunctions as sf
 
@@ -52,4 +53,10 @@ if __name__=='__main__':
         total_actions = total_actions + simulate_expert_state_action_distribution()
 
     lgr.info("average_actions = %0.2f", float(total_actions)/n_trials)
+    expert_distributions = list()
+    for _ in range(10):
+        expert_distributions.append(compute_expert_state_action_distribution())
+
+    with open('../pickles/expert_dists.pickle', 'wb') as expert_dists:
+        pickle.dump(expert_distributions, expert_dists)
 
